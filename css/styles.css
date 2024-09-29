@@ -1,0 +1,376 @@
+/* General styling */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  direction: rtl;
+  text-align: center;
+  scrollbar-gutter: stable;
+}
+
+/* Light mode (default) */
+body {
+  background-color: #f0f0f0;
+  color: #000;
+  direction: rtl;
+  text-align: center;
+  overflow-x: hidden; /* Ensures no horizontal scrolling */
+}
+
+.chapter-popup {
+  direction: ltr; /* Ensures the popup's scrollbar remains on the right side */
+}
+
+/* Dark mode */
+body.dark-mode {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+/* Top menu styling */
+.top-menu {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+  z-index: 1000;
+}
+
+.top-menu h1 {
+  font-size: 22px;
+  margin: 0;
+  padding: 0;
+}
+
+.total-score {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+/* Dark mode for top menu */
+body.dark-mode .top-menu {
+  background-color: #222;
+}
+
+/* Mode toggle buttons symmetrically placed */
+.mode-toggle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #fff;
+  color: #333;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Position Dark Mode Button to the right */
+#modeToggle {
+  right: 50%;
+  transform: translateX(200px) translateY(-50%);
+}
+
+/* Position Index Button to the left */
+#indexButton {
+  left: 50%;
+  transform: translateX(-200px) translateY(-50%);
+}
+
+/* Hover effect for both buttons */
+.mode-toggle:hover {
+  background-color: #ddd;
+}
+
+/* Content padding */
+#content {
+  padding-top: 80px;
+}
+
+/* Popup Menu Styling */
+.chapter-popup {
+  position: fixed;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  max-width: 400px;
+  background-color: white;
+  border: 2px solid #ccc;
+  padding: 20px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  display: none; /* Hidden by default */
+}
+
+.chapter-list {
+  text-align: left;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.chapter-list button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background-color: #f8f8f8;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 5px;
+  font-size: 16px;
+}
+
+.chapter-list button:hover {
+  background-color: #eee;
+}
+
+/* Close button styling */
+.close-popup {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.close-popup:hover {
+  background-color: #d32f2f;
+}
+
+/* Dark mode for popup */
+body.dark-mode .chapter-popup {
+  background-color: #333;
+  color: white;
+  border: 2px solid #444;
+}
+
+body.dark-mode .chapter-list button {
+  background-color: #444;
+  color: white;
+}
+
+body.dark-mode .chapter-list button:hover {
+  background-color: #555;
+}
+
+body.dark-mode .close-popup {
+  background-color: #d32f2f;
+}
+
+/* Sticky header styling */
+.sticky-header {
+  position: sticky;
+  top: 60px;
+  background-color: #f8f8f8;
+  padding: 2px 0 5px 0; /* Small space above and below elements */
+  z-index: 999;
+  border-bottom: 1px solid #ddd;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  margin-bottom: 5px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 8px;
+}
+
+/* Dark mode for sticky header */
+body.dark-mode .sticky-header {
+  background-color: #222;
+  color: white;
+  border-bottom: 1px solid #444;
+}
+
+/* Make the Arabic chapter name very big */
+.sticky-header .surah-name-arabic {
+  font-size: 48px; /* Very large font for Arabic chapter name */
+  font-weight: bold;
+  color: #000; /* Strong contrast for readability */
+  margin-bottom: 3px; /* Small space below the Arabic name */
+  margin-top: 4px;
+  line-height: 1.1; /* Reduce line height for tighter spacing */
+}
+
+/* Subheading style for chapter number, transliteration, type, and score */
+.sticky-header .surah-info {
+  font-size: 14px; /* Smaller font to resemble a subheading */
+  font-weight: normal;
+  color: #666; /* Dimmed color for subtle look */
+  margin-top: 0; /* Remove top margin to reduce spacing */
+  line-height: 1.1; /* Reduce line height for tighter spacing */
+}
+
+/* Dark mode adjustments */
+body.dark-mode .sticky-header .surah-info {
+  color: #bbb; /* Softer color for subheading in dark mode */
+}
+
+/* Play All Button styling */
+.play-all-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 5px; /* Slight space below the Play All button */
+}
+
+.play-all-button:hover {
+  background-color: #45a049;
+}
+
+/* Verse container */
+.verse-container {
+  display: flex;
+  justify-content: flex-start; /* Adjust alignment */
+  align-items: center;
+  margin-bottom: 5px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 5px;
+  flex-wrap: nowrap;  /* Prevent elements from wrapping */
+}
+
+/* Checkbox size remains consistent */
+.verse-checkbox {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+  cursor: pointer;
+  flex-shrink: 0;  /* Prevent shrinking */
+}
+
+/* Counter container adjustments */
+.counter-container {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+  margin-right: 10px; /* Add margin to separate from the checkbox and verse text */
+}
+
+/* Counter button styling */
+.counter-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  cursor: pointer;
+  margin: 0 5px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);  /* Add shadow for consistency */
+  transition: background-color 0.3s ease;
+}
+
+/* Counter button hover effect */
+.counter-btn:hover {
+  background-color: #45a049;
+}
+
+/* Counter display styling */
+.counter-display {
+  font-size: 18px;
+  font-weight: bold;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  color: #000; /* Ensure black text for visibility in light mode */
+}
+
+/* Counter display styling for dark mode */
+body.dark-mode .counter-display {
+  background-color: #333;  /* Dark background */
+  color: #fff;  /* White text for visibility in dark mode */
+  border: 1px solid #444;  /* Darker border */
+}
+
+/* Ayah card with proper layout */
+.verse-card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+  text-align: right;
+  font-size: 16px;
+  line-height: 1.4;
+  flex-grow: 1;  /* Allow Ayah text to expand */
+  word-break: break-word;  /* Break long words */
+}
+
+body.dark-mode .verse-card {
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #444;
+}
+
+/* Highlight the Ayah that is currently playing */
+.verse-container.highlight {
+  background-color: yellow;
+}
+
+/* Add scroll margin to chapters to prevent overlap */
+.chapter {
+  scroll-margin-top: 80px;
+}
+
+/* Sticky Bottom Menu */
+.bottom-menu {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #333;
+  color: white;
+  display: flex;
+  justify-content: center;  /* Center the content horizontally */
+  align-items: center;      /* Center the content vertically */
+  padding: 1px;
+  z-index: 1000;
+  box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.counter-section, .completion-date-section {
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.counter-section p, .completion-date-section p {
+  margin-left: 10px;
+  margin-right: 10px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.completion-date-section span {
+  font-size: 18px;
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+/* Dark Mode Styling for Bottom Menu */
+body.dark-mode .bottom-menu {
+  background-color: #222;
+}
+
+body.dark-mode .completion-date-section span {
+  color: #4CAF50;
+}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quran Web App</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Fixed Top Menu -->
+  <div class="top-menu">
+    <h1>Hifzul Quran</h1>
+    <!-- Index Button -->
+    <button id="indexButton" class="mode-toggle">Index</button>
+    <!-- Dark/Light Mode Toggle Button -->
+    <button id="modeToggle" class="mode-toggle">Dark</button>
+
+  </div>
+
+  <!-- Pop-up Menu for Chapters (Initially Hidden) -->
+  <div id="chapterPopup" class="chapter-popup">
+    <div id="chapterList" class="chapter-list"></div>
+    <button id="closePopup" class="close-popup">Close</button>
+  </div>
+
+  <!-- Content where Surahs and Ayahs will appear -->
+  <div id="content"></div>
+
+  <!-- Sticky Bottom Menu -->
+  <div class="bottom-menu">
+    <div class="counter-section">
+      <button id="decrementCheckCount" class="counter-btn">-</button>
+      <span id="checkCountDisplay" class="counter-display">0</span>
+      <button id="incrementCheckCount" class="counter-btn">+</button>
+      <p>: Ayah per day</p>
+    </div>
+    <div class="completion-date-section">
+      <p>Estimated Completion Date : <span id="completionDate">N/A</span></p>
+    </div>
+  </div>
+
+  
+  <!-- External JavaScript file -->
+  <script src="js/script.js"></script>
+</body>
+</html>
