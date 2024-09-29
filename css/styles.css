@@ -200,6 +200,11 @@ body.dark-mode .sticky-header {
   line-height: 1.1; /* Reduce line height for tighter spacing */
 }
 
+/* Dark mode adjustment for Arabic chapter name */
+body.dark-mode .sticky-header .surah-name-arabic {
+  color: #fff; /* Set color to white in dark mode */
+}
+
 /* Subheading style for chapter number, transliteration, type, and score */
 .sticky-header .surah-info {
   font-size: 14px; /* Smaller font to resemble a subheading */
