@@ -75,8 +75,18 @@ function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBase
     scoreSpan.classList.add('score');
     scoreSpan.textContent = `Score: 0 / ${surah.verses.length}`;
 
+    // Add REM and PC information
+    const remainingAyahs = surah.verses.length; // Initial remaining Ayahs for the surah
+    const percentageCompleted = ((0 / surah.verses.length) * 100).toFixed(2); // Initial percentage completed
+
+    const remPcSpan = document.createElement('span');
+    remPcSpan.classList.add('rem-pc-info');
+    remPcSpan.textContent = `REM: ${remainingAyahs}, P.C: ${percentageCompleted}%`;
+
     surahInfoH2.innerHTML = `Chapter ${surah.id}: ${surah.transliteration} - ${surah.type} - `;
     surahInfoH2.appendChild(scoreSpan);
+    surahInfoH2.appendChild(document.createElement('br'));
+    surahInfoH2.appendChild(remPcSpan); // Add REM and PC info here
 
     // Create the Play All button and add it to the chapter header
     const playAllButton = document.createElement('button');
@@ -127,11 +137,12 @@ function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBase
           tickedAyahs -= 1;
         }
 
-        const remainingAyahs = totalAyahs - tickedAyahs;
-        const percentageCompleted = ((tickedAyahs / totalAyahs) * 100).toFixed(2);
+        const remainingAyahs = surah.verses.length - tickedCount;
+        const percentageCompleted = ((tickedCount / surah.verses.length) * 100).toFixed(2);
 
         scoreSpan.textContent = `Score: ${tickedCount} / ${surah.verses.length}`;
-        topScoreSpan.textContent = `Total Score: ${tickedAyahs} / ${totalAyahs}, REM: ${remainingAyahs}, PC: ${percentageCompleted}%`;
+        remPcSpan.textContent = `REM: ${remainingAyahs}, P.C: ${percentageCompleted}%`;
+        topScoreSpan.textContent = `Total Score: ${tickedAyahs} / ${totalAyahs}, REM: ${totalAyahs - tickedAyahs}, P.C: ${((tickedAyahs / totalAyahs) * 100).toFixed(2)}%`;
 
         updateUncheckedCount(); // Update the unchecked count and recalculate completion date
       });

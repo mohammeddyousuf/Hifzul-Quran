@@ -205,18 +205,32 @@ body.dark-mode .sticky-header .surah-name-arabic {
   color: #fff; /* Set color to white in dark mode */
 }
 
-/* Subheading style for chapter number, transliteration, type, and score */
+/* Subheading style for chapter number, transliteration, type, score, REM, and PC */
 .sticky-header .surah-info {
   font-size: 14px; /* Smaller font to resemble a subheading */
   font-weight: normal;
   color: #666; /* Dimmed color for subtle look */
   margin-top: 0; /* Remove top margin to reduce spacing */
-  line-height: 1.1; /* Reduce line height for tighter spacing */
+  line-height: 1.2; /* Reduce line height for tighter spacing */
 }
 
-/* Dark mode adjustments */
+/* Dark mode adjustments for subheading */
 body.dark-mode .sticky-header .surah-info {
   color: #bbb; /* Softer color for subheading in dark mode */
+}
+
+/* Additional styling for REM and PC info */
+.rem-pc-info {
+  font-size: 12px; /* Slightly smaller for REM and PC */
+  font-weight: normal;
+  color: #888; /* Dimmed color */
+  display: block;
+  margin-top: 2px;
+}
+
+/* Dark mode adjustments for REM and PC */
+body.dark-mode .rem-pc-info {
+  color: #aaa; /* Softer color for REM and PC in dark mode */
 }
 
 /* Play All Button styling */
