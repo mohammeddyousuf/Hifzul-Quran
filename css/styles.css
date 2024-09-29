@@ -115,19 +115,31 @@ body.dark-mode .top-menu {
   overflow-y: auto;
 }
 
-.chapter-list button {
-  display: block;
-  width: 100%;
-  padding: 10px;
+/* Chapter item for each chapter with checkbox and button */
+.chapter-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+/* Chapter button styling */
+.chapter-button {
   background-color: #f8f8f8;
   border: none;
   text-align: left;
-  cursor: pointer;
-  margin-bottom: 5px;
   font-size: 16px;
+  cursor: pointer;
+  width: 100%;
 }
 
-.chapter-list button:hover {
+/* Chapter checkbox styling */
+.chapter-checkbox {
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.chapter-button:hover {
   background-color: #eee;
 }
 

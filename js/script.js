@@ -199,25 +199,51 @@ function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBase
   });
 }
 
-// Function to populate the chapter popup menu
+// Function to populate the chapter popup menu with checkboxes
 function populateChapterMenu(data) {
   const chapterList = document.getElementById('chapterList');
 
   data.forEach(surah => {
+    const chapterItemDiv = document.createElement('div');
+    chapterItemDiv.classList.add('chapter-item'); // Wrapper for each chapter item
+
     const chapterButton = document.createElement('button');
     chapterButton.textContent = `Chapter ${surah.id}: ${surah.transliteration}`;
-    
+    chapterButton.classList.add('chapter-button');
+
     // Scroll to the respective chapter when clicked with offset adjustment
     chapterButton.addEventListener('click', () => {
       const chapterSection = document.querySelector(`section[data-chapter-id="${surah.id}"]`);
-      const yOffset = -70;  // Offset value to ensure the sticky header is not visible
+      const yOffset = -70;  // Offset value to ensure the sticky header is not hidden
       const yPosition = chapterSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
       
       window.scrollTo({ top: yPosition, behavior: 'smooth' });
       closePopup(); // Close the popup after selection
     });
 
-    chapterList.appendChild(chapterButton);
+    // Add a checkbox next to the chapter name
+    const chapterCheckbox = document.createElement('input');
+    chapterCheckbox.type = 'checkbox';
+    chapterCheckbox.classList.add('chapter-checkbox');
+    
+    // Event listener to check/uncheck all verses in the chapter
+    chapterCheckbox.addEventListener('change', function () {
+      const chapterSection = document.querySelector(`section[data-chapter-id="${surah.id}"]`);
+      const checkboxes = chapterSection.querySelectorAll('.verse-checkbox');
+      
+      // Check/uncheck all verse checkboxes in the chapter based on the chapter checkbox state
+      checkboxes.forEach(checkbox => {
+        checkbox.checked = chapterCheckbox.checked;
+        checkbox.dispatchEvent(new Event('change')); // Trigger change event to update score, REM, and PC
+      });
+    });
+
+    // Append button and checkbox to the chapter item div
+    chapterItemDiv.appendChild(chapterCheckbox);
+    chapterItemDiv.appendChild(chapterButton);
+
+    // Add the chapter item to the list
+    chapterList.appendChild(chapterItemDiv);
   });
 }
 
