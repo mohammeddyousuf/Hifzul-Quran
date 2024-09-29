@@ -20,10 +20,10 @@ fetch('quran.json')
       totalAyahs += surah.verses.length;
     });
 
-    // Display total score in the top menu
+    // Display total score, remaining Ayahs, and percentage completed in the top menu
     const topScoreSpan = document.createElement('span');
     topScoreSpan.classList.add('total-score');
-    topScoreSpan.textContent = `Total Score: 0 / ${totalAyahs}`;
+    topScoreSpan.textContent = `Total Score: 0 / ${totalAyahs}, REM: ${totalAyahs}, P.C: 0.00%`;
     document.querySelector('.top-menu').appendChild(topScoreSpan);
 
     displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBaseUrl);
@@ -126,8 +126,13 @@ function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBase
           tickedCount -= 1;
           tickedAyahs -= 1;
         }
+
+        const remainingAyahs = totalAyahs - tickedAyahs;
+        const percentageCompleted = ((tickedAyahs / totalAyahs) * 100).toFixed(2);
+
         scoreSpan.textContent = `Score: ${tickedCount} / ${surah.verses.length}`;
-        topScoreSpan.textContent = `Total Score: ${tickedAyahs} / ${totalAyahs}`;
+        topScoreSpan.textContent = `Total Score: ${tickedAyahs} / ${totalAyahs}, REM: ${remainingAyahs}, PC: ${percentageCompleted}%`;
+
         updateUncheckedCount(); // Update the unchecked count and recalculate completion date
       });
 

@@ -73,13 +73,13 @@ body.dark-mode .top-menu {
 
 /* Position Dark Mode Button to the right */
 #modeToggle {
-  right: 50%;
+  right: 40%;
   transform: translateX(200px) translateY(-50%);
 }
 
 /* Position Index Button to the left */
 #indexButton {
-  left: 50%;
+  left: 40%;
   transform: translateX(-200px) translateY(-50%);
 }
 
