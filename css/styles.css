@@ -53,7 +53,7 @@ body.dark-mode {
 
 /* Dark mode for top menu */
 body.dark-mode .top-menu {
-  background-color: #222;
+  background-color: #222; /* Darker shade for top menu */
 }
 
 /* Mode toggle buttons symmetrically placed */
@@ -185,7 +185,7 @@ body.dark-mode .close-popup {
 
 /* Dark mode for sticky header */
 body.dark-mode .sticky-header {
-  background-color: #222;
+  background-color: #333; /* Slightly lighter shade for sticky chapter menu */
   color: white;
   border-bottom: 1px solid #444;
 }
