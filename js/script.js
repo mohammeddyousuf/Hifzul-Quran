@@ -16,7 +16,7 @@ fetch('quran.json')
     return response.json();
   })
   .then(data => {
-    const audioBaseUrl = "https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/";
+    const audioBaseUrl = "audio/";
 
     // Calculate total Ayahs in the Quran
     data.forEach(surah => {
