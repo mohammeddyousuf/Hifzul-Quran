@@ -1,19 +1,16 @@
 // Declare global variables
 let currentAudio = null; // Keep track of the currently playing audio
-let isPlaying = false;   // Track if "Play All" or "Play Selected" is active
-let isPlayingSelected = false; // Track if "Play Selected" is active
+let isPlaying = false;   // Track if "Play All" is active
 let lastHighlightedAyah = null; // Track the last highlighted Ayah
 let checksPerDay = 0;
 let uncheckedCount = 0;
 let totalAyahs = 0;
+let tickedAyahs = 0; // Global variable to track total ticked Ayahs
 
 // Fetch the Quran data and audio base URL
 fetch('quran.json')
   .then(response => response.json())
   .then(data => {
-    let totalAyahs = 0;
-    let tickedAyahs = 0;
-
     const audioBaseUrl = "https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/";
 
     // Calculate total Ayahs in the Quran
@@ -27,7 +24,7 @@ fetch('quran.json')
     topScoreSpan.textContent = `Total Score: 0 / ${totalAyahs}, REM: ${totalAyahs}, P.C: 0.00%`;
     document.querySelector('.top-menu').appendChild(topScoreSpan);
 
-    displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBaseUrl);
+    displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl);
     populateChapterMenu(data); // Populate chapter menu for index button
 
     // Initialize unchecked count
@@ -55,7 +52,7 @@ document.getElementById('modeToggle').addEventListener('click', toggleMode);
 document.body.classList.add('light-mode');
 
 // Function to display Quran data
-function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBaseUrl) {
+function displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl) {
   const contentDiv = document.getElementById('content');
 
   data.forEach(surah => {
@@ -94,40 +91,53 @@ function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBase
     playAllButton.textContent = "Play All";
     playAllButton.classList.add('play-all-button');
     playAllButton.addEventListener('click', () => {
-      if (!isPlaying && !isPlayingSelected) {
-        let hasSelectedVerses = Array.from(surahSection.querySelectorAll('.verse-container'))
-          .some(verseContainer => parseInt(verseContainer.dataset.repeatCount) > 0);
+      if (!isPlaying) {
+        isPlaying = true;
 
-        if (hasSelectedVerses) {
-          isPlayingSelected = true;
+        // Determine if any repeat counters are set
+        const countersSet = surahSection.querySelectorAll('.verse-container[data-repeat-count]:not([data-repeat-count="0"])').length > 0;
+        if (countersSet) {
           playAllButton.textContent = "Stop Selected";
         } else {
-          isPlaying = true;
           playAllButton.textContent = "Stop All";
         }
+
         playAllAyahsSequentially(surah, surahSection, audioBaseUrl, playAllButton);
       } else {
         isPlaying = false;
-        isPlayingSelected = false;
-        playAllButton.textContent = "Play All";
+        // Determine if any repeat counters are set
+        const countersSet = surahSection.querySelectorAll('.verse-container[data-repeat-count]:not([data-repeat-count="0"])').length > 0;
+        if (countersSet) {
+          playAllButton.textContent = "Play Selected";
+        } else {
+          playAllButton.textContent = "Play All";
+        }
         if (currentAudio) {
           currentAudio.pause();
           currentAudio.currentTime = 0;
         }
         resetAllCounters(surahSection);
-        enableIncrementDecrementButtons(true);
+        enableIncrementDecrementButtons(true); // Re-enable increment/decrement buttons when stopped
         if (lastHighlightedAyah) {
-          lastHighlightedAyah.classList.remove('highlight');
+          lastHighlightedAyah.classList.remove('highlight'); // Remove highlight if playback is stopped
         }
       }
     });
+
+    // Update Play All button text based on counters
+    const updatePlayAllButtonText = () => {
+      const countersSet = surahSection.querySelectorAll('.verse-container[data-repeat-count]:not([data-repeat-count="0"])').length > 0;
+      if (isPlaying) {
+        playAllButton.textContent = countersSet ? "Stop Selected" : "Stop All";
+      } else {
+        playAllButton.textContent = countersSet ? "Play Selected" : "Play All";
+      }
+    };
 
     headerDiv.appendChild(surahNameH1);
     headerDiv.appendChild(surahInfoH2);
     headerDiv.appendChild(playAllButton);
     surahSection.appendChild(headerDiv);
-
-    let tickedCount = 0;
 
     surah.verses.forEach(verse => {
       const verseContainer = document.createElement('div');
@@ -139,22 +149,41 @@ function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBase
       checkbox.type = 'checkbox';
       checkbox.classList.add('verse-checkbox');
       checkbox.addEventListener('change', function () {
-        if (checkbox.checked) {
-          tickedCount += 1;
-          tickedAyahs += 1;
-        } else {
-          tickedCount -= 1;
-          tickedAyahs -= 1;
+        // Now, update the chapter checkbox in the index menu
+
+        // First, get the parent chapter section
+        const chapterSection = checkbox.closest('section[data-chapter-id]');
+        // Get all verse checkboxes in this chapter
+        const allVerseCheckboxes = chapterSection.querySelectorAll('.verse-checkbox');
+        // Check how many are checked
+        const checkedCount = Array.from(allVerseCheckboxes).filter(cb => cb.checked).length;
+        // Get the total number of verse checkboxes
+        const totalVerseCheckboxes = allVerseCheckboxes.length;
+
+        // Find the chapter checkbox in the index menu
+        const chapterId = chapterSection.dataset.chapterId;
+        const chapterCheckbox = document.querySelector(`.chapter-checkbox[data-chapter-id="${chapterId}"]`);
+        if (chapterCheckbox) {
+          if (checkedCount === totalVerseCheckboxes) {
+            // All are checked
+            chapterCheckbox.checked = true;
+            chapterCheckbox.indeterminate = false;
+          } else if (checkedCount === 0) {
+            // None are checked
+            chapterCheckbox.checked = false;
+            chapterCheckbox.indeterminate = false;
+          } else {
+            // Some are checked
+            chapterCheckbox.checked = false;
+            chapterCheckbox.indeterminate = true;
+          }
         }
 
-        const remainingAyahs = surah.verses.length - tickedCount;
-        const percentageCompleted = ((tickedCount / surah.verses.length) * 100).toFixed(2);
+        // Update counts
+        updateCounts();
 
-        scoreSpan.textContent = `Score: ${tickedCount} / ${surah.verses.length}`;
-        remPcSpan.textContent = `REM: ${remainingAyahs}, P.C: ${percentageCompleted}%`;
-        topScoreSpan.textContent = `Total Score: ${tickedAyahs} / ${totalAyahs}, REM: ${totalAyahs - tickedAyahs}, P.C: ${((tickedAyahs / totalAyahs) * 100).toFixed(2)}%`;
-
-        updateUncheckedCount(); // Update the unchecked count and recalculate completion date
+        // Update unchecked count and completion date
+        updateUncheckedCount();
       });
 
       const counterContainer = document.createElement('div');
@@ -164,13 +193,13 @@ function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBase
       decrementBtn.classList.add('counter-btn');
       decrementBtn.textContent = '-';
       decrementBtn.addEventListener('click', () => {
-        if (!isPlaying && !isPlayingSelected) {
+        if (!isPlaying) {
           let repeatCount = parseInt(verseContainer.dataset.repeatCount || 0);
           if (repeatCount > 0) {
             repeatCount -= 1;
             verseContainer.dataset.repeatCount = repeatCount;
             counterDisplay.textContent = repeatCount;
-            checkAndUpdatePlayButton(playAllButton, surahSection);
+            updatePlayAllButtonText(); // Update button text based on counters
           }
         }
       });
@@ -183,12 +212,12 @@ function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBase
       incrementBtn.classList.add('counter-btn');
       incrementBtn.textContent = '+';
       incrementBtn.addEventListener('click', () => {
-        if (!isPlaying && !isPlayingSelected) {
+        if (!isPlaying) {
           let repeatCount = parseInt(verseContainer.dataset.repeatCount || 0);
           repeatCount += 1;
           verseContainer.dataset.repeatCount = repeatCount;
           counterDisplay.textContent = repeatCount;
-          checkAndUpdatePlayButton(playAllButton, surahSection);
+          updatePlayAllButtonText(); // Update button text based on counters
         }
       });
 
@@ -237,17 +266,26 @@ function populateChapterMenu(data) {
     const chapterCheckbox = document.createElement('input');
     chapterCheckbox.type = 'checkbox';
     chapterCheckbox.classList.add('chapter-checkbox');
-    
+    chapterCheckbox.setAttribute('data-chapter-id', surah.id); // Properly set data-chapter-id
+
     // Event listener to check/uncheck all verses in the chapter
     chapterCheckbox.addEventListener('change', function () {
       const chapterSection = document.querySelector(`section[data-chapter-id="${surah.id}"]`);
       const checkboxes = chapterSection.querySelectorAll('.verse-checkbox');
-      
-      // Check/uncheck all verse checkboxes in the chapter based on the chapter checkbox state
+
+      // When user clicks on chapter checkbox, clear indeterminate state
+      chapterCheckbox.indeterminate = false;
+
+      // Update the checkboxes without dispatching 'change' events
       checkboxes.forEach(checkbox => {
         checkbox.checked = chapterCheckbox.checked;
-        checkbox.dispatchEvent(new Event('change')); // Trigger change event to update score, REM, and PC
       });
+
+      // Update counts
+      updateCounts();
+
+      // Update unchecked count and completion date
+      updateUncheckedCount();
     });
 
     // Append button and checkbox to the chapter item div
@@ -256,6 +294,33 @@ function populateChapterMenu(data) {
 
     // Add the chapter item to the list
     chapterList.appendChild(chapterItemDiv);
+  });
+}
+
+// Function to update counts
+function updateCounts() {
+  // Update global tickedAyahs
+  tickedAyahs = document.querySelectorAll('.verse-checkbox:checked').length;
+
+  // Update the top menu
+  const topScoreSpan = document.querySelector('.top-menu .total-score');
+  topScoreSpan.textContent = `Total Score: ${tickedAyahs} / ${totalAyahs}, REM: ${totalAyahs - tickedAyahs}, P.C: ${((tickedAyahs / totalAyahs) * 100).toFixed(2)}%`;
+
+  // For each chapter, update tickedCount
+  const chapters = document.querySelectorAll('.chapter');
+  chapters.forEach(chapterSection => {
+    const checkboxes = chapterSection.querySelectorAll('.verse-checkbox');
+    const tickedCount = chapterSection.querySelectorAll('.verse-checkbox:checked').length;
+    chapterSection.dataset.tickedCount = tickedCount;
+
+    const scoreSpan = chapterSection.querySelector('.score');
+    const remPcSpan = chapterSection.querySelector('.rem-pc-info');
+
+    const remainingAyahs = checkboxes.length - tickedCount;
+    const percentageCompleted = ((tickedCount / checkboxes.length) * 100).toFixed(2);
+
+    scoreSpan.textContent = `Score: ${tickedCount} / ${checkboxes.length}`;
+    remPcSpan.textContent = `REM: ${remainingAyahs}, P.C: ${percentageCompleted}%`;
   });
 }
 
@@ -275,87 +340,95 @@ function closePopup() {
 document.getElementById('indexButton').addEventListener('click', showPopup);
 document.getElementById('closePopup').addEventListener('click', closePopup);
 
-// Function to check if there are any counters set and update the Play All button accordingly
-function checkAndUpdatePlayButton(playAllButton, surahSection) {
-  let hasSelectedVerses = Array.from(surahSection.querySelectorAll('.verse-container'))
-    .some(verseContainer => parseInt(verseContainer.dataset.repeatCount) > 0);
-
-  if (hasSelectedVerses) {
-    playAllButton.textContent = "Play Selected";
-  } else {
-    playAllButton.textContent = "Play All";
-  }
-}
-
 // Function to play all Ayahs sequentially and manage Play/Stop All toggle
 function playAllAyahsSequentially(surah, surahSection, audioBaseUrl, playAllButton) {
   let currentAyahIndex = 0;
 
   const verseContainers = surahSection.querySelectorAll('.verse-container');
 
+  // Collect verses to play based on repeat counts
+  const versesToPlay = Array.from(verseContainers).filter(vc => parseInt(vc.dataset.repeatCount) > 0);
+
+  // If no repeat counts are set, play all verses once
+  if (versesToPlay.length === 0) {
+    versesToPlay.push(...verseContainers);
+  }
+
   const playNextAyah = () => {
-    if (currentAyahIndex >= surah.verses.length || (!isPlaying && !isPlayingSelected)) {
-      playAllButton.textContent = "Play All";  // Ensure button resets to "Play All" after playback
-      resetAllCounters(surahSection); // Reset all counters to 0 after playback
+    if (currentAyahIndex >= versesToPlay.length || !isPlaying) {
+      // Reset when all Ayahs have been played or playback is stopped
       isPlaying = false;
-      isPlayingSelected = false;
       enableIncrementDecrementButtons(true); // Re-enable increment/decrement buttons
+      resetAllCounters(surahSection); // Reset all counters to 0 after playback
+
+      // Update Play All button text based on counters
+      const countersSet = surahSection.querySelectorAll('.verse-container[data-repeat-count]:not([data-repeat-count="0"])').length > 0;
+      playAllButton.textContent = countersSet ? "Play Selected" : "Play All";
       return;
     }
 
-    const verseContainer = verseContainers[currentAyahIndex];
+    const verseContainer = versesToPlay[currentAyahIndex];
+    const verseId = verseContainer.querySelector('.verse-card strong').textContent.replace(':', '');
+    const surahId = String(surah.id).padStart(3, '0');
+    const ayahId = String(verseId).padStart(3, '0');
+    const audioUrl = `${audioBaseUrl}${surahId}${ayahId}.mp3`;
+
     let repeatCount = parseInt(verseContainer.dataset.repeatCount || 0);
 
-    if (isPlayingSelected && repeatCount === 0) {
-      currentAyahIndex++;
-      playNextAyah();
-      return;
+    // If no repeat count is set, play once
+    if (repeatCount === 0) {
+      repeatCount = 1;
     }
 
-    const verse = surah.verses[currentAyahIndex];
-    const surahId = String(surah.id).padStart(3, '0');
-    const ayahId = String(verse.id).padStart(3, '0');
-    const audioUrl = `${audioBaseUrl}${surahId}${ayahId}.mp3`;
+    // Reset the counter to the correct repeat count before playing
+    const counterDisplay = verseContainer.querySelector('.counter-display');
+    counterDisplay.textContent = repeatCount;
 
     playAyahWithCounter(
       audioUrl,
       repeatCount,
-      verseContainer.querySelector('.counter-display'),
-      verseContainer,
+      counterDisplay,
+      verseContainer, // Pass verseContainer to highlight the Ayah
       () => {
-        currentAyahIndex++;
+        currentAyahIndex++; // Move to the next Ayah after the current one finishes
         playNextAyah();
       }
     );
   };
 
+  // Disable increment and decrement buttons while Play All is active
   enableIncrementDecrementButtons(false);
+
+  // Start playing the first Ayah
   playNextAyah();
 }
 
 // Function to play individual Ayahs with repeat counts and highlight them
 function playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContainer, onFinished) {
-  currentAudio = new Audio(audioUrl);
+  currentAudio = new Audio(audioUrl); // Track the current audio
 
+  // Highlight the current Ayah
   if (lastHighlightedAyah) {
-    lastHighlightedAyah.classList.remove('highlight');
+    lastHighlightedAyah.classList.remove('highlight'); // Remove highlight from the last Ayah
   }
   verseContainer.classList.add('highlight');
-  lastHighlightedAyah = verseContainer;
+  lastHighlightedAyah = verseContainer; // Track this as the last highlighted Ayah
 
+  // Display the correct repeat count at the start
   counterDisplay.textContent = repeatCount;
   currentAudio.play();
 
+  // When the audio ends, decrement the counter and handle looping
   currentAudio.onended = () => {
     repeatCount--;
-    counterDisplay.textContent = repeatCount;
+    counterDisplay.textContent = repeatCount; // Update the counter
 
     if (repeatCount > 0) {
-      playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContainer, onFinished);
+      playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContainer, onFinished); // Replay if needed
     } else {
-      counterDisplay.textContent = 0;
-      verseContainer.classList.remove('highlight');
-      onFinished();
+      counterDisplay.textContent = 0; // Reset the counter to 0
+      verseContainer.classList.remove('highlight'); // Remove the highlight after the Ayah finishes
+      onFinished(); // Call the callback to continue with the next Ayah
     }
   };
 }
@@ -364,8 +437,8 @@ function playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContain
 function resetAllCounters(surahSection) {
   const counters = surahSection.querySelectorAll('.counter-display');
   counters.forEach(counter => {
-    counter.textContent = 0;
-    counter.closest('.verse-container').dataset.repeatCount = 0;
+    counter.textContent = 0; // Reset counter display to 0
+    counter.closest('.verse-container').dataset.repeatCount = 0; // Reset the internal repeatCount
   });
 }
 
@@ -403,8 +476,9 @@ function calculateCompletionDate() {
     const currentDate = new Date();
     currentDate.setDate(currentDate.getDate() + daysToComplete);
 
+    // Format the date to DD/MM/YYYY
     const day = String(currentDate.getDate()).padStart(2, '0');
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based
     const year = currentDate.getFullYear();
 
     const formattedDate = `${day}/${month}/${year}`;
@@ -420,14 +494,7 @@ function updateUncheckedCount() {
   calculateCompletionDate();
 }
 
-// Call this function after fetching data to initialize uncheckedCount
-fetch('quran.json')
-  .then(response => response.json())
-  .then(data => {
-    totalAyahs = data.reduce((acc, surah) => acc + surah.verses.length, 0);
-    updateUncheckedCount();
-  });
-
+// Update the uncheckedCount every time a checkbox changes
 document.addEventListener('change', (event) => {
   if (event.target.classList.contains('verse-checkbox')) {
     updateUncheckedCount();
