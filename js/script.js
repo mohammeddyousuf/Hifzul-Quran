@@ -1,6 +1,7 @@
 // Declare global variables
 let currentAudio = null; // Keep track of the currently playing audio
-let isPlaying = false;   // Track if "Play All" is active
+let isPlaying = false;   // Track if "Play All" or "Play Selected" is active
+let isPlayingSelected = false; // Track if "Play Selected" is active
 let lastHighlightedAyah = null; // Track the last highlighted Ayah
 let checksPerDay = 0;
 let uncheckedCount = 0;
@@ -93,21 +94,30 @@ function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBase
     playAllButton.textContent = "Play All";
     playAllButton.classList.add('play-all-button');
     playAllButton.addEventListener('click', () => {
-      if (!isPlaying) {
-        isPlaying = true;
-        playAllButton.textContent = "Stop All";
+      if (!isPlaying && !isPlayingSelected) {
+        let hasSelectedVerses = Array.from(surahSection.querySelectorAll('.verse-container'))
+          .some(verseContainer => parseInt(verseContainer.dataset.repeatCount) > 0);
+
+        if (hasSelectedVerses) {
+          isPlayingSelected = true;
+          playAllButton.textContent = "Stop Selected";
+        } else {
+          isPlaying = true;
+          playAllButton.textContent = "Stop All";
+        }
         playAllAyahsSequentially(surah, surahSection, audioBaseUrl, playAllButton);
       } else {
         isPlaying = false;
+        isPlayingSelected = false;
         playAllButton.textContent = "Play All";
         if (currentAudio) {
           currentAudio.pause();
           currentAudio.currentTime = 0;
         }
         resetAllCounters(surahSection);
-        enableIncrementDecrementButtons(true); // Re-enable increment/decrement buttons when stopped
+        enableIncrementDecrementButtons(true);
         if (lastHighlightedAyah) {
-          lastHighlightedAyah.classList.remove('highlight'); // Remove highlight if playback is stopped
+          lastHighlightedAyah.classList.remove('highlight');
         }
       }
     });
@@ -154,12 +164,13 @@ function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBase
       decrementBtn.classList.add('counter-btn');
       decrementBtn.textContent = '-';
       decrementBtn.addEventListener('click', () => {
-        if (!isPlaying) {
+        if (!isPlaying && !isPlayingSelected) {
           let repeatCount = parseInt(verseContainer.dataset.repeatCount || 0);
           if (repeatCount > 0) {
             repeatCount -= 1;
             verseContainer.dataset.repeatCount = repeatCount;
             counterDisplay.textContent = repeatCount;
+            checkAndUpdatePlayButton(playAllButton, surahSection);
           }
         }
       });
@@ -172,11 +183,12 @@ function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBase
       incrementBtn.classList.add('counter-btn');
       incrementBtn.textContent = '+';
       incrementBtn.addEventListener('click', () => {
-        if (!isPlaying) {
+        if (!isPlaying && !isPlayingSelected) {
           let repeatCount = parseInt(verseContainer.dataset.repeatCount || 0);
           repeatCount += 1;
           verseContainer.dataset.repeatCount = repeatCount;
           counterDisplay.textContent = repeatCount;
+          checkAndUpdatePlayButton(playAllButton, surahSection);
         }
       });
 
@@ -263,6 +275,18 @@ function closePopup() {
 document.getElementById('indexButton').addEventListener('click', showPopup);
 document.getElementById('closePopup').addEventListener('click', closePopup);
 
+// Function to check if there are any counters set and update the Play All button accordingly
+function checkAndUpdatePlayButton(playAllButton, surahSection) {
+  let hasSelectedVerses = Array.from(surahSection.querySelectorAll('.verse-container'))
+    .some(verseContainer => parseInt(verseContainer.dataset.repeatCount) > 0);
+
+  if (hasSelectedVerses) {
+    playAllButton.textContent = "Play Selected";
+  } else {
+    playAllButton.textContent = "Play All";
+  }
+}
+
 // Function to play all Ayahs sequentially and manage Play/Stop All toggle
 function playAllAyahsSequentially(surah, surahSection, audioBaseUrl, playAllButton) {
   let currentAyahIndex = 0;
@@ -270,12 +294,21 @@ function playAllAyahsSequentially(surah, surahSection, audioBaseUrl, playAllButt
   const verseContainers = surahSection.querySelectorAll('.verse-container');
 
   const playNextAyah = () => {
-    if (currentAyahIndex >= surah.verses.length || !isPlaying) {
-      // Reset when all Ayahs have been played or playback is stopped
-      playAllButton.textContent = "Play All";
+    if (currentAyahIndex >= surah.verses.length || (!isPlaying && !isPlayingSelected)) {
+      playAllButton.textContent = "Play All";  // Ensure button resets to "Play All" after playback
       resetAllCounters(surahSection); // Reset all counters to 0 after playback
       isPlaying = false;
+      isPlayingSelected = false;
       enableIncrementDecrementButtons(true); // Re-enable increment/decrement buttons
+      return;
+    }
+
+    const verseContainer = verseContainers[currentAyahIndex];
+    let repeatCount = parseInt(verseContainer.dataset.repeatCount || 0);
+
+    if (isPlayingSelected && repeatCount === 0) {
+      currentAyahIndex++;
+      playNextAyah();
       return;
     }
 
@@ -284,63 +317,45 @@ function playAllAyahsSequentially(surah, surahSection, audioBaseUrl, playAllButt
     const ayahId = String(verse.id).padStart(3, '0');
     const audioUrl = `${audioBaseUrl}${surahId}${ayahId}.mp3`;
 
-    const verseContainer = verseContainers[currentAyahIndex];
-    let repeatCount = parseInt(verseContainer.dataset.repeatCount || 0);
-
-    // Reset the counter to the correct repeat count before playing
-    const counterDisplay = verseContainer.querySelector('.counter-display');
-    counterDisplay.textContent = repeatCount;
-
-    if (repeatCount > 0) {
-      playAyahWithCounter(
-        audioUrl, 
-        repeatCount, 
-        counterDisplay, 
-        verseContainer, // Pass verseContainer to highlight the Ayah
-        () => {
-          currentAyahIndex++; // Move to the next Ayah after the current one finishes
-          playNextAyah();
-        }
-      );
-    } else {
-      currentAyahIndex++; // Skip if repeatCount is 0
-      playNextAyah();
-    }
+    playAyahWithCounter(
+      audioUrl,
+      repeatCount,
+      verseContainer.querySelector('.counter-display'),
+      verseContainer,
+      () => {
+        currentAyahIndex++;
+        playNextAyah();
+      }
+    );
   };
 
-  // Disable increment and decrement buttons while Play All is active
   enableIncrementDecrementButtons(false);
-
-  // Start playing the first Ayah
   playNextAyah();
 }
 
 // Function to play individual Ayahs with repeat counts and highlight them
 function playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContainer, onFinished) {
-  currentAudio = new Audio(audioUrl); // Track the current audio
+  currentAudio = new Audio(audioUrl);
 
-  // Highlight the current Ayah
   if (lastHighlightedAyah) {
-    lastHighlightedAyah.classList.remove('highlight'); // Remove highlight from the last Ayah
+    lastHighlightedAyah.classList.remove('highlight');
   }
   verseContainer.classList.add('highlight');
-  lastHighlightedAyah = verseContainer; // Track this as the last highlighted Ayah
+  lastHighlightedAyah = verseContainer;
 
-  // Display the correct repeat count at the start
   counterDisplay.textContent = repeatCount;
   currentAudio.play();
 
-  // When the audio ends, decrement the counter and handle looping
   currentAudio.onended = () => {
     repeatCount--;
-    counterDisplay.textContent = repeatCount; // Update the counter
+    counterDisplay.textContent = repeatCount;
 
     if (repeatCount > 0) {
-      playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContainer, onFinished); // Replay if needed
+      playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContainer, onFinished);
     } else {
-      counterDisplay.textContent = 0; // Reset the counter to 0
-      verseContainer.classList.remove('highlight'); // Remove the highlight after the Ayah finishes
-      onFinished(); // Call the callback to continue with the next Ayah
+      counterDisplay.textContent = 0;
+      verseContainer.classList.remove('highlight');
+      onFinished();
     }
   };
 }
@@ -349,8 +364,8 @@ function playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContain
 function resetAllCounters(surahSection) {
   const counters = surahSection.querySelectorAll('.counter-display');
   counters.forEach(counter => {
-    counter.textContent = 0; // Reset counter display to 0
-    counter.closest('.verse-container').dataset.repeatCount = 0; // Reset the internal repeatCount
+    counter.textContent = 0;
+    counter.closest('.verse-container').dataset.repeatCount = 0;
   });
 }
 
@@ -388,9 +403,8 @@ function calculateCompletionDate() {
     const currentDate = new Date();
     currentDate.setDate(currentDate.getDate() + daysToComplete);
 
-    // Format the date to DD/MM/YYYY
     const day = String(currentDate.getDate()).padStart(2, '0');
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
     const year = currentDate.getFullYear();
 
     const formattedDate = `${day}/${month}/${year}`;
@@ -410,13 +424,10 @@ function updateUncheckedCount() {
 fetch('quran.json')
   .then(response => response.json())
   .then(data => {
-    // Calculate total and unchecked Ayahs
     totalAyahs = data.reduce((acc, surah) => acc + surah.verses.length, 0);
     updateUncheckedCount();
-    // Existing logic for populating Quran data and UI elements...
   });
 
-// Update the uncheckedCount every time a checkbox changes
 document.addEventListener('change', (event) => {
   if (event.target.classList.contains('verse-checkbox')) {
     updateUncheckedCount();
