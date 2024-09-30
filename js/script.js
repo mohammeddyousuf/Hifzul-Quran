@@ -9,7 +9,12 @@ let tickedAyahs = 0; // Global variable to track total ticked Ayahs
 
 // Fetch the Quran data and audio base URL
 fetch('quran.json')
-  .then(response => response.json())
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  })
   .then(data => {
     const audioBaseUrl = "https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/";
 
@@ -30,7 +35,10 @@ fetch('quran.json')
     // Initialize unchecked count
     updateUncheckedCount();
   })
-  .catch(error => console.error('Error loading Quran data:', error));
+  .catch(error => {
+    console.error('Error loading Quran data:', error);
+    alert('Failed to load Quran data. Please try again later.');
+  });
 
 // Function to toggle Dark/Light mode
 function toggleMode() {
@@ -90,6 +98,7 @@ function displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl) {
     const playAllButton = document.createElement('button');
     playAllButton.textContent = "Play All";
     playAllButton.classList.add('play-all-button');
+    playAllButton.setAttribute('aria-label', 'Play all verses in this chapter');
     playAllButton.addEventListener('click', () => {
       if (!isPlaying) {
         isPlaying = true;
@@ -121,6 +130,7 @@ function displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl) {
         if (lastHighlightedAyah) {
           lastHighlightedAyah.classList.remove('highlight'); // Remove highlight if playback is stopped
         }
+        updatePlayAllButtonText(); // Update button text
       }
     });
 
@@ -148,6 +158,7 @@ function displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl) {
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.classList.add('verse-checkbox');
+      checkbox.setAttribute('aria-label', `Mark verse ${verse.id} as completed`);
       checkbox.addEventListener('change', function () {
         // Now, update the chapter checkbox in the index menu
 
@@ -192,6 +203,7 @@ function displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl) {
       const decrementBtn = document.createElement('button');
       decrementBtn.classList.add('counter-btn');
       decrementBtn.textContent = '-';
+      decrementBtn.setAttribute('aria-label', `Decrease repeat count for verse ${verse.id}`);
       decrementBtn.addEventListener('click', () => {
         if (!isPlaying) {
           let repeatCount = parseInt(verseContainer.dataset.repeatCount || 0);
@@ -211,6 +223,7 @@ function displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl) {
       const incrementBtn = document.createElement('button');
       incrementBtn.classList.add('counter-btn');
       incrementBtn.textContent = '+';
+      incrementBtn.setAttribute('aria-label', `Increase repeat count for verse ${verse.id}`);
       incrementBtn.addEventListener('click', () => {
         if (!isPlaying) {
           let repeatCount = parseInt(verseContainer.dataset.repeatCount || 0);
@@ -251,6 +264,7 @@ function populateChapterMenu(data) {
     const chapterButton = document.createElement('button');
     chapterButton.textContent = `Chapter ${surah.id}: ${surah.transliteration}`;
     chapterButton.classList.add('chapter-button');
+    chapterButton.setAttribute('aria-label', `Go to Chapter ${surah.id}`);
 
     // Scroll to the respective chapter when clicked with offset adjustment
     chapterButton.addEventListener('click', () => {
@@ -267,6 +281,7 @@ function populateChapterMenu(data) {
     chapterCheckbox.type = 'checkbox';
     chapterCheckbox.classList.add('chapter-checkbox');
     chapterCheckbox.setAttribute('data-chapter-id', surah.id); // Properly set data-chapter-id
+    chapterCheckbox.setAttribute('aria-label', `Mark all verses in Chapter ${surah.id} as completed`);
 
     // Event listener to check/uncheck all verses in the chapter
     chapterCheckbox.addEventListener('change', function () {
@@ -418,12 +433,21 @@ function playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContain
   counterDisplay.textContent = repeatCount;
   currentAudio.play();
 
+  // Error handling for audio playback
+  currentAudio.onerror = () => {
+    console.error(`Error playing audio: ${audioUrl}`);
+    alert('Failed to play audio. Please check your internet connection.');
+    counterDisplay.textContent = 0;
+    verseContainer.classList.remove('highlight');
+    onFinished();
+  };
+
   // When the audio ends, decrement the counter and handle looping
   currentAudio.onended = () => {
     repeatCount--;
     counterDisplay.textContent = repeatCount; // Update the counter
 
-    if (repeatCount > 0) {
+    if (repeatCount > 0 && isPlaying) {
       playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContainer, onFinished); // Replay if needed
     } else {
       counterDisplay.textContent = 0; // Reset the counter to 0
@@ -440,6 +464,8 @@ function resetAllCounters(surahSection) {
     counter.textContent = 0; // Reset counter display to 0
     counter.closest('.verse-container').dataset.repeatCount = 0; // Reset the internal repeatCount
   });
+  // Update Play All button text
+  const updatePlayAllButtonText = surahSection.querySelector('.play-all-button').textContent;
 }
 
 // Function to enable/disable increment and decrement buttons
