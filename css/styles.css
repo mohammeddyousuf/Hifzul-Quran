@@ -560,3 +560,15 @@ body.dark-mode .bottom-menu {
 body.dark-mode .completion-date-section span {
   color: #4CAF50;
 }
+
+/* Estimated date styling */
+.estimated-date {
+  font-size: 12px;
+  color: #888;
+  margin-left: 5px;
+}
+
+/* Dark mode styling for estimated date */
+body.dark-mode .estimated-date {
+  color: #ccc;
+}

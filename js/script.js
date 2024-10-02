@@ -35,6 +35,8 @@ fetch('quran.json')
 
     // Initialize unchecked count
     updateUncheckedCount();
+    // Call updateAyahEstimatedDates on initial load
+    updateAyahEstimatedDates();
   })
   .catch(error => {
     console.error('Error loading Quran data:', error);
@@ -619,6 +621,7 @@ document.getElementById('incrementCheckCount').addEventListener('click', () => {
   checksPerDay++;
   checkCountDisplay.textContent = checksPerDay;
   calculateCompletionDate();
+  updateAyahEstimatedDates(); // Update estimated dates when checksPerDay changes
 });
 
 document.getElementById('decrementCheckCount').addEventListener('click', () => {
@@ -626,6 +629,7 @@ document.getElementById('decrementCheckCount').addEventListener('click', () => {
     checksPerDay--;
     checkCountDisplay.textContent = checksPerDay;
     calculateCompletionDate();
+    updateAyahEstimatedDates(); // Update estimated dates when checksPerDay changes
   }
 });
 
@@ -652,6 +656,7 @@ function calculateCompletionDate() {
 function updateUncheckedCount() {
   uncheckedCount = document.querySelectorAll('.verse-checkbox:not(:checked)').length;
   calculateCompletionDate();
+  updateAyahEstimatedDates(); // Update estimated dates when unchecked count changes
 }
 
 // Update the uncheckedCount every time a checkbox changes
@@ -660,3 +665,48 @@ document.addEventListener('change', (event) => {
     updateUncheckedCount();
   }
 });
+
+// Function to update estimated dates for each unchecked Ayah
+function updateAyahEstimatedDates() {
+  const today = new Date();
+  const uncheckedVerseCheckboxes = document.querySelectorAll('.verse-container .verse-checkbox:not(:checked)');
+
+  let uncheckedAyahs = [];
+  uncheckedVerseCheckboxes.forEach((checkbox) => {
+    const verseContainer = checkbox.closest('.verse-container');
+    uncheckedAyahs.push(verseContainer);
+  });
+
+  uncheckedAyahs.forEach((verseContainer, index) => {
+    const dayOffset = Math.floor(index / checksPerDay);
+    const estimatedDate = new Date(today);
+    estimatedDate.setDate(today.getDate() + dayOffset);
+
+    const day = String(estimatedDate.getDate()).padStart(2, '0');
+    const month = String(estimatedDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const year = estimatedDate.getFullYear();
+
+    const formattedDate = `${day}/${month}/${year}`;
+
+    // Now, in the verseContainer, we need to display this date next to the checkbox
+    let estimatedDateSpan = verseContainer.querySelector('.estimated-date');
+    if (!estimatedDateSpan) {
+      // Create the span if it doesn't exist
+      estimatedDateSpan = document.createElement('span');
+      estimatedDateSpan.classList.add('estimated-date');
+      estimatedDateSpan.style.marginLeft = '5px'; // Adjust styling as needed
+      verseContainer.querySelector('.verse-checkbox').after(estimatedDateSpan);
+    }
+    estimatedDateSpan.textContent = formattedDate;
+  });
+
+  // For checked ayahs, remove the estimated date
+  const checkedVerseCheckboxes = document.querySelectorAll('.verse-container .verse-checkbox:checked');
+  checkedVerseCheckboxes.forEach((checkbox) => {
+    const verseContainer = checkbox.closest('.verse-container');
+    const estimatedDateSpan = verseContainer.querySelector('.estimated-date');
+    if (estimatedDateSpan) {
+      estimatedDateSpan.remove();
+    }
+  });
+}
