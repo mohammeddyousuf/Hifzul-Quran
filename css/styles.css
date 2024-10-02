@@ -243,6 +243,7 @@ body.dark-mode .speed-option:hover {
 /* Content padding */
 #content {
   padding-top: 80px;
+  padding-bottom: 100px; /* Add enough padding to ensure the last Ayah is visible above the bottom bar */
 }
 
 /* Popup Menu Styling */
