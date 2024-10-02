@@ -79,8 +79,71 @@ body.dark-mode .top-menu {
 
 /* Position Index Button to the left */
 #indexButton {
-  left: 40%;
+  left: 35%;
   transform: translateX(-200px) translateY(-50%);
+}
+
+/* Speed button positioning next to Index */
+#speedButton {
+  left: 38%;
+  transform: translateX(-150px) translateY(-50%);
+}
+
+/* Speed options styling */
+#speedPopup {
+  position: fixed;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  background-color: white;
+  border: 2px solid #ccc;
+  padding: 20px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  display: none; /* Hidden by default */
+}
+
+.speed-option {
+  display: block;
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+}
+
+/* Active speed option styling */
+.active-speed {
+  background-color: #007BFF; /* Blue background for active speed */
+  color: white; /* White text for contrast */
+  font-weight: bold; /* Bold text to make it more visible */
+  border: 2px solid #0056b3; /* Optional: Add a border for clarity */
+}
+
+/* Apply hover effect only to non-active speed options */
+.speed-option:hover:not(.active-speed) {
+  background-color: #45a049;
+}
+
+
+
+/* Dark mode adjustments for speed popup */
+body.dark-mode #speedPopup {
+  background-color: #333;
+  color: white;
+  border: 2px solid #444;
+}
+
+body.dark-mode .speed-option {
+  background-color: #444;
+}
+
+body.dark-mode .speed-option:hover {
+  background-color: #555;
 }
 
 /* Hover effect for both buttons */

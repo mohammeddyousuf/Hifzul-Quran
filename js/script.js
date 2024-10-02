@@ -2,6 +2,7 @@
 let currentAudio = null; // Keep track of the currently playing audio
 let isPlaying = false;   // Track if "Play All" is active
 let lastHighlightedAyah = null; // Track the last highlighted Ayah
+let playbackRate = 1.0; // Global variable to store playback speed
 let checksPerDay = 0;
 let uncheckedCount = 0;
 let totalAyahs = 0;
@@ -39,6 +40,77 @@ fetch('quran.json')
     console.error('Error loading Quran data:', error);
     alert('Failed to load Quran data. Please try again later.');
   });
+
+// Function to update playback speed across all Ayahs
+function updatePlaybackSpeed(speed) {
+  playbackRate = speed;
+  if (currentAudio) {
+    currentAudio.playbackRate = playbackRate;
+  }
+}
+
+// Set default to normal on page load
+document.addEventListener('DOMContentLoaded', () => {
+  updatePlaybackSpeed(1.0); // Set default to normal speed
+  setActiveSpeed('normalSpeed'); // Highlight normal speed by default
+});
+
+// Helper function to clear active class and set new active speed
+function setActiveSpeed(buttonId) {
+  // Remove active class from all speed options
+  document.querySelectorAll('.speed-option').forEach(option => {
+    option.classList.remove('active-speed');
+  });
+  // Add active class to the selected option
+  document.getElementById(buttonId).classList.add('active-speed');
+}
+
+// Event listeners for speed buttons
+document.getElementById('speedButton').addEventListener('click', () => {
+  document.getElementById('speedPopup').style.display = 'block';
+});
+
+document.getElementById('closeSpeedPopup').addEventListener('click', () => {
+  document.getElementById('speedPopup').style.display = 'none';
+});
+
+document.getElementById('slowSpeed').addEventListener('click', () => {
+  updatePlaybackSpeed(0.6); // 60% slower
+  setActiveSpeed('slowSpeed'); // Highlight slow speed
+  // Do not close the menu after selection
+});
+
+document.getElementById('normalSpeed').addEventListener('click', () => {
+  updatePlaybackSpeed(1.0); // Normal speed
+  setActiveSpeed('normalSpeed'); // Highlight normal speed
+  // Do not close the menu after selection
+});
+
+document.getElementById('fastSpeed').addEventListener('click', () => {
+  updatePlaybackSpeed(2.0); // 100% faster
+  setActiveSpeed('fastSpeed'); // Highlight fast speed
+  // Do not close the menu after selection
+});
+
+
+
+function playAudioForAyah(ayahAudioUrl) {
+  if (currentAudio) {
+    currentAudio.pause();
+  }
+
+  currentAudio = new Audio(ayahAudioUrl);
+  currentAudio.playbackRate = playbackRate; // Ensure global speed setting is applied
+  currentAudio.play();
+  
+  currentAudio.onended = () => {
+    if (isPlaying) {
+      // Logic to play the next Ayah in sequence, ensuring playbackRate is applied
+      playNextAyah(); // Assuming you have a function to play the next Ayah
+    }
+  };
+}
+
 
 // Function to toggle Dark/Light mode
 function toggleMode() {
@@ -422,6 +494,9 @@ function playAllAyahsSequentially(surah, surahSection, audioBaseUrl, playAllButt
 function playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContainer, onFinished) {
   currentAudio = new Audio(audioUrl); // Track the current audio
 
+  // Apply the global playback rate to the current Ayah
+  currentAudio.playbackRate = playbackRate; // Ensure playback rate is applied
+
   // Highlight the current Ayah
   if (lastHighlightedAyah) {
     lastHighlightedAyah.classList.remove('highlight'); // Remove highlight from the last Ayah
@@ -456,6 +531,7 @@ function playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContain
     }
   };
 }
+
 
 // Function to reset all counters and ensure no old values remain
 function resetAllCounters(surahSection) {
