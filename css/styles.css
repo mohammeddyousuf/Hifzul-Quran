@@ -336,7 +336,7 @@ body.dark-mode .close-popup {
 /* Sticky header styling */
 .sticky-header {
   position: sticky;
-  top: 60px;
+  top: 58px;
   background-color: #f8f8f8;
   padding: 2px 0 5px 0; /* Small space above and below elements */
   z-index: 999;
