@@ -74,6 +74,56 @@ document.getElementById('closeSpeedPopup').addEventListener('click', () => {
   document.getElementById('speedPopup').style.display = 'none';
 });
 
+// Event listener for Font Button
+document.getElementById('fontButton').addEventListener('click', () => {
+  document.getElementById('fontPopup').style.display = 'block';
+});
+
+// Close Font Popup
+document.getElementById('closeFontPopup').addEventListener('click', () => {
+  document.getElementById('fontPopup').style.display = 'none';
+});
+
+// Function to change font size for Ayah text only
+function changeFontSize(size) {
+  let fontSize;
+  switch (size) {
+    case 'normal':
+      fontSize = '100%'; // Default font size
+      break;
+    case 'big':
+      fontSize = '120%'; // Slightly larger font size
+      break;
+    case 'bigger':
+      fontSize = '140%'; // Even larger font size
+      break;
+  }
+
+  // Apply font size only to Ayah elements with the class 'ayah-text'
+  const ayahElements = document.querySelectorAll('.ayah-text');
+  ayahElements.forEach(ayah => {
+    ayah.style.fontSize = fontSize;
+  });
+
+  // Remove active class from all font options and set the selected one as active
+  document.querySelectorAll('.font-option').forEach(option => {
+    option.classList.remove('active-font');
+  });
+  document.getElementById(`${size}Font`).classList.add('active-font');
+}
+
+
+// Set event listeners for font options
+document.getElementById('normalFont').addEventListener('click', () => changeFontSize('normal'));
+document.getElementById('bigFont').addEventListener('click', () => changeFontSize('big'));
+document.getElementById('biggerFont').addEventListener('click', () => changeFontSize('bigger'));
+
+// Set default to normal font size on page load
+document.addEventListener('DOMContentLoaded', () => {
+  changeFontSize('normal');
+});
+
+
 document.getElementById('slowSpeed').addEventListener('click', () => {
   updatePlaybackSpeed(0.6); // 60% slower
   setActiveSpeed('slowSpeed'); // Highlight slow speed
@@ -225,7 +275,7 @@ function displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl) {
       const verseContainer = document.createElement('div');
       verseContainer.classList.add('verse-container');
       verseContainer.dataset.repeatCount = 0; // Set default repeat count
-
+    
       // Checkbox remains on the left
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
@@ -233,7 +283,7 @@ function displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl) {
       checkbox.setAttribute('aria-label', `Mark verse ${verse.id} as completed`);
       checkbox.addEventListener('change', function () {
         // Now, update the chapter checkbox in the index menu
-
+    
         // First, get the parent chapter section
         const chapterSection = checkbox.closest('section[data-chapter-id]');
         // Get all verse checkboxes in this chapter
@@ -242,7 +292,7 @@ function displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl) {
         const checkedCount = Array.from(allVerseCheckboxes).filter(cb => cb.checked).length;
         // Get the total number of verse checkboxes
         const totalVerseCheckboxes = allVerseCheckboxes.length;
-
+    
         // Find the chapter checkbox in the index menu
         const chapterId = chapterSection.dataset.chapterId;
         const chapterCheckbox = document.querySelector(`.chapter-checkbox[data-chapter-id="${chapterId}"]`);
@@ -261,17 +311,17 @@ function displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl) {
             chapterCheckbox.indeterminate = true;
           }
         }
-
+    
         // Update counts
         updateCounts();
-
+    
         // Update unchecked count and completion date
         updateUncheckedCount();
       });
-
+    
       const counterContainer = document.createElement('div');
       counterContainer.classList.add('counter-container');
-
+    
       const decrementBtn = document.createElement('button');
       decrementBtn.classList.add('counter-btn');
       decrementBtn.textContent = '-';
@@ -287,11 +337,11 @@ function displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl) {
           }
         }
       });
-
+    
       const counterDisplay = document.createElement('span');
       counterDisplay.classList.add('counter-display');
       counterDisplay.textContent = 0; // Initialize counter
-
+    
       const incrementBtn = document.createElement('button');
       incrementBtn.classList.add('counter-btn');
       incrementBtn.textContent = '+';
@@ -305,21 +355,28 @@ function displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl) {
           updatePlayAllButtonText(); // Update button text based on counters
         }
       });
-
+    
       counterContainer.appendChild(decrementBtn);
       counterContainer.appendChild(counterDisplay);
       counterContainer.appendChild(incrementBtn);
-
+    
       const verseCard = document.createElement('div');
       verseCard.classList.add('verse-card');
-      verseCard.innerHTML = `<strong>${verse.id}:</strong> ${verse.text}`;
-
+      
+      // Add a span element with the 'ayah-text' class for the Ayah text
+      const ayahText = document.createElement('span');
+      ayahText.classList.add('ayah-text'); // Add this class to target Ayah text
+      ayahText.innerHTML = `<strong>${verse.id}:</strong> ${verse.text}`;
+    
+      verseCard.appendChild(ayahText); // Append Ayah text to the verseCard
+    
       verseContainer.appendChild(checkbox);
       verseContainer.appendChild(counterContainer);
       verseContainer.appendChild(verseCard);
-
+    
       surahSection.appendChild(verseContainer);
     });
+    
 
     contentDiv.appendChild(surahSection);
   });

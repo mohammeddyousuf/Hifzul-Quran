@@ -71,22 +71,83 @@ body.dark-mode .top-menu {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Position Dark Mode Button to the right */
-#modeToggle {
-  right: 40%;
-  transform: translateX(200px) translateY(-50%);
-}
-
 /* Position Index Button to the left */
 #indexButton {
-  left: 35%;
+  left: 38%;
   transform: translateX(-200px) translateY(-50%);
 }
 
 /* Speed button positioning next to Index */
 #speedButton {
-  left: 38%;
+  left: 40%;
   transform: translateX(-150px) translateY(-50%);
+}
+
+/* Position Dark Mode Button to the right */
+#modeToggle {
+  right: 38%;
+  transform: translateX(200px) translateY(-50%);
+}
+
+/* Position Size Button to the right, between Speed and Dark buttons */
+#fontButton {
+  right: 40%;
+  transform: translateX(150px) translateY(-50%);
+}
+
+/* Font options styling */
+#fontPopup {
+  position: fixed;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  background-color: white;
+  border: 2px solid #ccc;
+  padding: 20px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  display: none; /* Hidden by default */
+}
+
+.font-option {
+  display: block;
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+}
+
+/* Active font option styling */
+.active-font {
+  background-color: #007BFF;
+  color: white;
+  font-weight: bold;
+  border: 2px solid #0056b3;
+}
+
+/* Apply hover effect only to non-active font options */
+.font-option:hover:not(.active-font) {
+  background-color: #45a049;
+}
+
+/* Dark mode adjustments for font popup */
+body.dark-mode #fontPopup {
+  background-color: #333;
+  color: white;
+  border: 2px solid #444;
+}
+
+body.dark-mode .font-option {
+  background-color: #444;
+}
+
+body.dark-mode .font-option:hover {
+  background-color: #555;
 }
 
 /* Speed options styling */
@@ -102,6 +163,34 @@ body.dark-mode .top-menu {
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   z-index: 1001;
   display: none; /* Hidden by default */
+}
+
+/* Active size option styling */
+.active-size {
+  background-color: #007BFF;
+  color: white;
+  font-weight: bold;
+  border: 2px solid #0056b3;
+}
+
+/* Apply hover effect only to non-active size options */
+.size-option:hover:not(.active-size) {
+  background-color: #45a049;
+}
+
+/* Dark mode adjustments for size popup */
+body.dark-mode #sizePopup {
+  background-color: #333;
+  color: white;
+  border: 2px solid #444;
+}
+
+body.dark-mode .size-option {
+  background-color: #444;
+}
+
+body.dark-mode .size-option:hover {
+  background-color: #555;
 }
 
 .speed-option {
