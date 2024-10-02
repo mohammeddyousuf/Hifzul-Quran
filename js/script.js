@@ -27,7 +27,7 @@ fetch('quran.json')
     // Display total score, remaining Ayahs, and percentage completed in the top menu
     const topScoreSpan = document.createElement('span');
     topScoreSpan.classList.add('total-score');
-    topScoreSpan.textContent = `Total Score: 0 / ${totalAyahs}, REM: ${totalAyahs}, P.C: 0.00%`;
+    topScoreSpan.textContent = `Total Score: 0 / ${totalAyahs}, Left: ${totalAyahs}, Done: 0.00%`;
     document.querySelector('.top-menu').appendChild(topScoreSpan);
 
     displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl);
@@ -209,7 +209,7 @@ function displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl) {
 
     const remPcSpan = document.createElement('span');
     remPcSpan.classList.add('rem-pc-info');
-    remPcSpan.textContent = `REM: ${remainingAyahs}, P.C: ${percentageCompleted}%`;
+    remPcSpan.textContent = `Left: ${remainingAyahs}, Done: ${percentageCompleted}%`;
 
     surahInfoH2.innerHTML = `Chapter ${surah.id}: ${surah.transliteration} - ${surah.type} - `;
     surahInfoH2.appendChild(scoreSpan);
@@ -448,7 +448,7 @@ function updateCounts() {
 
   // Update the top menu
   const topScoreSpan = document.querySelector('.top-menu .total-score');
-  topScoreSpan.textContent = `Total Score: ${tickedAyahs} / ${totalAyahs}, REM: ${totalAyahs - tickedAyahs}, P.C: ${((tickedAyahs / totalAyahs) * 100).toFixed(2)}%`;
+  topScoreSpan.textContent = `Total Score: ${tickedAyahs} / ${totalAyahs}, Left: ${totalAyahs - tickedAyahs}, Done: ${((tickedAyahs / totalAyahs) * 100).toFixed(2)}%`;
 
   // For each chapter, update tickedCount
   const chapters = document.querySelectorAll('.chapter');
@@ -464,7 +464,7 @@ function updateCounts() {
     const percentageCompleted = ((tickedCount / checkboxes.length) * 100).toFixed(2);
 
     scoreSpan.textContent = `Score: ${tickedCount} / ${checkboxes.length}`;
-    remPcSpan.textContent = `REM: ${remainingAyahs}, P.C: ${percentageCompleted}%`;
+    remPcSpan.textContent = `Left: ${remainingAyahs}, Done: ${percentageCompleted}%`;
   });
 }
 
