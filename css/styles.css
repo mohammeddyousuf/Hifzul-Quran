@@ -46,10 +46,12 @@ body.dark-mode {
 }
 
 .total-score {
+  font-size: 14px; /* Adjust this size based on your preference */
   display: block;
   margin: 0;
   padding: 0;
 }
+
 
 /* Dark mode for top menu */
 body.dark-mode .top-menu {
