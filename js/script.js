@@ -112,6 +112,9 @@ function changeFontSize(size) {
     option.classList.remove('active-font');
   });
   document.getElementById(`${size}Font`).classList.add('active-font');
+
+  // Close the font popup after selection
+  document.getElementById('fontPopup').style.display = 'none';
 }
 
 
@@ -129,19 +132,22 @@ document.addEventListener('DOMContentLoaded', () => {
 document.getElementById('slowSpeed').addEventListener('click', () => {
   updatePlaybackSpeed(0.6); // 60% slower
   setActiveSpeed('slowSpeed'); // Highlight slow speed
-  // Do not close the menu after selection
+  // Close the speed popup after selection
+  document.getElementById('speedPopup').style.display = 'none';
 });
 
 document.getElementById('normalSpeed').addEventListener('click', () => {
   updatePlaybackSpeed(1.0); // Normal speed
   setActiveSpeed('normalSpeed'); // Highlight normal speed
-  // Do not close the menu after selection
+  // Close the speed popup after selection
+  document.getElementById('speedPopup').style.display = 'none';
 });
 
 document.getElementById('fastSpeed').addEventListener('click', () => {
   updatePlaybackSpeed(2.0); // 100% faster
   setActiveSpeed('fastSpeed'); // Highlight fast speed
-  // Do not close the menu after selection
+  // Close the speed popup after selection
+  document.getElementById('speedPopup').style.display = 'none';
 });
 
 
