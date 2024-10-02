@@ -3,7 +3,7 @@ let currentAudio = null; // Keep track of the currently playing audio
 let isPlaying = false;   // Track if "Play All" is active
 let lastHighlightedAyah = null; // Track the last highlighted Ayah
 let playbackRate = 1.0; // Global variable to store playback speed
-let checksPerDay = 0;
+let checksPerDay = 1;
 let uncheckedCount = 0;
 let totalAyahs = 0;
 let tickedAyahs = 0; // Global variable to track total ticked Ayahs
@@ -611,6 +611,7 @@ function enableIncrementDecrementButtons(enabled) {
 
 // Select the counter display elements for sticky bottom menu
 const checkCountDisplay = document.getElementById('checkCountDisplay');
+checkCountDisplay.textContent = checksPerDay;
 const completionDateDisplay = document.getElementById('completionDate');
 
 // Increment and decrement buttons for bottom menu
@@ -621,7 +622,7 @@ document.getElementById('incrementCheckCount').addEventListener('click', () => {
 });
 
 document.getElementById('decrementCheckCount').addEventListener('click', () => {
-  if (checksPerDay > 0) {
+  if (checksPerDay > 1) {
     checksPerDay--;
     checkCountDisplay.textContent = checksPerDay;
     calculateCompletionDate();
