@@ -12,9 +12,32 @@
     <h1>Hifzul Quran</h1>
     <!-- Index Button -->
     <button id="indexButton" class="mode-toggle">Index</button>
+    <!-- Speed Button -->
+    <button id="speedButton" class="mode-toggle">Speed</button>
+    <!-- Font Button -->
+    <button id="fontButton" class="mode-toggle">Font</button>
     <!-- Dark/Light Mode Toggle Button -->
     <button id="modeToggle" class="mode-toggle">Dark</button>
 
+    <!-- Pop-up Menu for Speed Control (Initially Hidden) -->
+    <div id="speedPopup" class="chapter-popup">
+      <div id="speedOptions">
+        <button id="slowSpeed" class="speed-option">Slow</button>
+        <button id="normalSpeed" class="speed-option">Normal</button>
+        <button id="fastSpeed" class="speed-option">Fast</button>
+      </div>
+      <button id="closeSpeedPopup" class="close-popup">Close</button>
+    </div>
+
+    <!-- Pop-up Menu for Size Control (Initially Hidden) -->
+    <div id="fontPopup" class="chapter-popup">
+      <div id="fontOptions">
+        <button id="normalFont" class="font-option">Normal</button>
+        <button id="bigFont" class="font-option">Big</button>
+        <button id="biggerFont" class="font-option">Bigger</button>
+      </div>
+      <button id="closeFontPopup" class="close-popup">Close</button>
+    </div>    
   </div>
 
   <!-- Pop-up Menu for Chapters (Initially Hidden) -->
@@ -39,7 +62,6 @@
     </div>
   </div>
 
-  
   <!-- External JavaScript file -->
   <script src="js/script.js"></script>
 </body>

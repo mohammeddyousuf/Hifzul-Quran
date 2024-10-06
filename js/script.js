@@ -2,37 +2,173 @@
 let currentAudio = null; // Keep track of the currently playing audio
 let isPlaying = false;   // Track if "Play All" is active
 let lastHighlightedAyah = null; // Track the last highlighted Ayah
-let checksPerDay = 0;
+let playbackRate = 1.0; // Global variable to store playback speed
+let checksPerDay = 1;
 let uncheckedCount = 0;
 let totalAyahs = 0;
+let tickedAyahs = 0; // Global variable to track total ticked Ayahs
 
 // Fetch the Quran data and audio base URL
 fetch('quran.json')
-  .then(response => response.json())
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  })
   .then(data => {
-    let totalAyahs = 0;
-    let tickedAyahs = 0;
-
-    const audioBaseUrl = "https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/";
+    const audioBaseUrl = "audio/";
 
     // Calculate total Ayahs in the Quran
     data.forEach(surah => {
       totalAyahs += surah.verses.length;
     });
 
-    // Display total score in the top menu
+    // Display total score, remaining Ayahs, and percentage completed in the top menu
     const topScoreSpan = document.createElement('span');
     topScoreSpan.classList.add('total-score');
-    topScoreSpan.textContent = `Total Score: 0 / ${totalAyahs}`;
+    topScoreSpan.textContent = `Total Score: 0 / ${totalAyahs}, Left: ${totalAyahs}, Done: 0.00%`;
     document.querySelector('.top-menu').appendChild(topScoreSpan);
 
-    displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBaseUrl);
+    displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl);
     populateChapterMenu(data); // Populate chapter menu for index button
 
     // Initialize unchecked count
     updateUncheckedCount();
+    // Call updateAyahEstimatedDates on initial load
+    updateAyahEstimatedDates();
   })
-  .catch(error => console.error('Error loading Quran data:', error));
+  .catch(error => {
+    console.error('Error loading Quran data:', error);
+    alert('Failed to load Quran data. Please try again later.');
+  });
+
+// Function to update playback speed across all Ayahs
+function updatePlaybackSpeed(speed) {
+  playbackRate = speed;
+  if (currentAudio) {
+    currentAudio.playbackRate = playbackRate;
+  }
+}
+
+// Set default to normal on page load
+document.addEventListener('DOMContentLoaded', () => {
+  updatePlaybackSpeed(1.0); // Set default to normal speed
+  setActiveSpeed('normalSpeed'); // Highlight normal speed by default
+});
+
+// Helper function to clear active class and set new active speed
+function setActiveSpeed(buttonId) {
+  // Remove active class from all speed options
+  document.querySelectorAll('.speed-option').forEach(option => {
+    option.classList.remove('active-speed');
+  });
+  // Add active class to the selected option
+  document.getElementById(buttonId).classList.add('active-speed');
+}
+
+// Event listeners for speed buttons
+document.getElementById('speedButton').addEventListener('click', () => {
+  document.getElementById('speedPopup').style.display = 'block';
+});
+
+document.getElementById('closeSpeedPopup').addEventListener('click', () => {
+  document.getElementById('speedPopup').style.display = 'none';
+});
+
+// Event listener for Font Button
+document.getElementById('fontButton').addEventListener('click', () => {
+  document.getElementById('fontPopup').style.display = 'block';
+});
+
+// Close Font Popup
+document.getElementById('closeFontPopup').addEventListener('click', () => {
+  document.getElementById('fontPopup').style.display = 'none';
+});
+
+// Function to change font size for Ayah text only
+function changeFontSize(size) {
+  let fontSize;
+  switch (size) {
+    case 'normal':
+      fontSize = '100%'; // Default font size
+      break;
+    case 'big':
+      fontSize = '120%'; // Slightly larger font size
+      break;
+    case 'bigger':
+      fontSize = '140%'; // Even larger font size
+      break;
+  }
+
+  // Apply font size only to Ayah elements with the class 'ayah-text'
+  const ayahElements = document.querySelectorAll('.ayah-text');
+  ayahElements.forEach(ayah => {
+    ayah.style.fontSize = fontSize;
+  });
+
+  // Remove active class from all font options and set the selected one as active
+  document.querySelectorAll('.font-option').forEach(option => {
+    option.classList.remove('active-font');
+  });
+  document.getElementById(`${size}Font`).classList.add('active-font');
+
+  // Close the font popup after selection
+  document.getElementById('fontPopup').style.display = 'none';
+}
+
+
+// Set event listeners for font options
+document.getElementById('normalFont').addEventListener('click', () => changeFontSize('normal'));
+document.getElementById('bigFont').addEventListener('click', () => changeFontSize('big'));
+document.getElementById('biggerFont').addEventListener('click', () => changeFontSize('bigger'));
+
+// Set default to normal font size on page load
+document.addEventListener('DOMContentLoaded', () => {
+  changeFontSize('normal');
+});
+
+
+document.getElementById('slowSpeed').addEventListener('click', () => {
+  updatePlaybackSpeed(0.6); // 60% slower
+  setActiveSpeed('slowSpeed'); // Highlight slow speed
+  // Close the speed popup after selection
+  document.getElementById('speedPopup').style.display = 'none';
+});
+
+document.getElementById('normalSpeed').addEventListener('click', () => {
+  updatePlaybackSpeed(1.0); // Normal speed
+  setActiveSpeed('normalSpeed'); // Highlight normal speed
+  // Close the speed popup after selection
+  document.getElementById('speedPopup').style.display = 'none';
+});
+
+document.getElementById('fastSpeed').addEventListener('click', () => {
+  updatePlaybackSpeed(2.0); // 100% faster
+  setActiveSpeed('fastSpeed'); // Highlight fast speed
+  // Close the speed popup after selection
+  document.getElementById('speedPopup').style.display = 'none';
+});
+
+
+
+function playAudioForAyah(ayahAudioUrl) {
+  if (currentAudio) {
+    currentAudio.pause();
+  }
+
+  currentAudio = new Audio(ayahAudioUrl);
+  currentAudio.playbackRate = playbackRate; // Ensure global speed setting is applied
+  currentAudio.play();
+  
+  currentAudio.onended = () => {
+    if (isPlaying) {
+      // Logic to play the next Ayah in sequence, ensuring playbackRate is applied
+      playNextAyah(); // Assuming you have a function to play the next Ayah
+    }
+  };
+}
+
 
 // Function to toggle Dark/Light mode
 function toggleMode() {
@@ -54,7 +190,7 @@ document.getElementById('modeToggle').addEventListener('click', toggleMode);
 document.body.classList.add('light-mode');
 
 // Function to display Quran data
-function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBaseUrl) {
+function displayQuranData(data, totalAyahs, topScoreSpan, audioBaseUrl) {
   const contentDiv = document.getElementById('content');
 
   data.forEach(surah => {
@@ -75,21 +211,46 @@ function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBase
     scoreSpan.classList.add('score');
     scoreSpan.textContent = `Score: 0 / ${surah.verses.length}`;
 
+    // Add REM and PC information
+    const remainingAyahs = surah.verses.length; // Initial remaining Ayahs for the surah
+    const percentageCompleted = ((0 / surah.verses.length) * 100).toFixed(2); // Initial percentage completed
+
+    const remPcSpan = document.createElement('span');
+    remPcSpan.classList.add('rem-pc-info');
+    remPcSpan.textContent = `Left: ${remainingAyahs}, Done: ${percentageCompleted}%`;
+
     surahInfoH2.innerHTML = `Chapter ${surah.id}: ${surah.transliteration} - ${surah.type} - `;
     surahInfoH2.appendChild(scoreSpan);
+    surahInfoH2.appendChild(document.createElement('br'));
+    surahInfoH2.appendChild(remPcSpan); // Add REM and PC info here
 
     // Create the Play All button and add it to the chapter header
     const playAllButton = document.createElement('button');
     playAllButton.textContent = "Play All";
     playAllButton.classList.add('play-all-button');
+    playAllButton.setAttribute('aria-label', 'Play all verses in this chapter');
     playAllButton.addEventListener('click', () => {
       if (!isPlaying) {
         isPlaying = true;
-        playAllButton.textContent = "Stop All";
+
+        // Determine if any repeat counters are set
+        const countersSet = surahSection.querySelectorAll('.verse-container[data-repeat-count]:not([data-repeat-count="0"])').length > 0;
+        if (countersSet) {
+          playAllButton.textContent = "Stop Selected";
+        } else {
+          playAllButton.textContent = "Stop All";
+        }
+
         playAllAyahsSequentially(surah, surahSection, audioBaseUrl, playAllButton);
       } else {
         isPlaying = false;
-        playAllButton.textContent = "Play All";
+        // Determine if any repeat counters are set
+        const countersSet = surahSection.querySelectorAll('.verse-container[data-repeat-count]:not([data-repeat-count="0"])').length > 0;
+        if (countersSet) {
+          playAllButton.textContent = "Play Selected";
+        } else {
+          playAllButton.textContent = "Play All";
+        }
         if (currentAudio) {
           currentAudio.pause();
           currentAudio.currentTime = 0;
@@ -99,44 +260,80 @@ function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBase
         if (lastHighlightedAyah) {
           lastHighlightedAyah.classList.remove('highlight'); // Remove highlight if playback is stopped
         }
+        updatePlayAllButtonText(); // Update button text
       }
     });
+
+    // Update Play All button text based on counters
+    const updatePlayAllButtonText = () => {
+      const countersSet = surahSection.querySelectorAll('.verse-container[data-repeat-count]:not([data-repeat-count="0"])').length > 0;
+      if (isPlaying) {
+        playAllButton.textContent = countersSet ? "Stop Selected" : "Stop All";
+      } else {
+        playAllButton.textContent = countersSet ? "Play Selected" : "Play All";
+      }
+    };
 
     headerDiv.appendChild(surahNameH1);
     headerDiv.appendChild(surahInfoH2);
     headerDiv.appendChild(playAllButton);
     surahSection.appendChild(headerDiv);
 
-    let tickedCount = 0;
-
     surah.verses.forEach(verse => {
       const verseContainer = document.createElement('div');
       verseContainer.classList.add('verse-container');
       verseContainer.dataset.repeatCount = 0; // Set default repeat count
-
+    
       // Checkbox remains on the left
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.classList.add('verse-checkbox');
+      checkbox.setAttribute('aria-label', `Mark verse ${verse.id} as completed`);
       checkbox.addEventListener('change', function () {
-        if (checkbox.checked) {
-          tickedCount += 1;
-          tickedAyahs += 1;
-        } else {
-          tickedCount -= 1;
-          tickedAyahs -= 1;
+        // Now, update the chapter checkbox in the index menu
+    
+        // First, get the parent chapter section
+        const chapterSection = checkbox.closest('section[data-chapter-id]');
+        // Get all verse checkboxes in this chapter
+        const allVerseCheckboxes = chapterSection.querySelectorAll('.verse-checkbox');
+        // Check how many are checked
+        const checkedCount = Array.from(allVerseCheckboxes).filter(cb => cb.checked).length;
+        // Get the total number of verse checkboxes
+        const totalVerseCheckboxes = allVerseCheckboxes.length;
+    
+        // Find the chapter checkbox in the index menu
+        const chapterId = chapterSection.dataset.chapterId;
+        const chapterCheckbox = document.querySelector(`.chapter-checkbox[data-chapter-id="${chapterId}"]`);
+        if (chapterCheckbox) {
+          if (checkedCount === totalVerseCheckboxes) {
+            // All are checked
+            chapterCheckbox.checked = true;
+            chapterCheckbox.indeterminate = false;
+          } else if (checkedCount === 0) {
+            // None are checked
+            chapterCheckbox.checked = false;
+            chapterCheckbox.indeterminate = false;
+          } else {
+            // Some are checked
+            chapterCheckbox.checked = false;
+            chapterCheckbox.indeterminate = true;
+          }
         }
-        scoreSpan.textContent = `Score: ${tickedCount} / ${surah.verses.length}`;
-        topScoreSpan.textContent = `Total Score: ${tickedAyahs} / ${totalAyahs}`;
-        updateUncheckedCount(); // Update the unchecked count and recalculate completion date
+    
+        // Update counts
+        updateCounts();
+    
+        // Update unchecked count and completion date
+        updateUncheckedCount();
       });
-
+    
       const counterContainer = document.createElement('div');
       counterContainer.classList.add('counter-container');
-
+    
       const decrementBtn = document.createElement('button');
       decrementBtn.classList.add('counter-btn');
       decrementBtn.textContent = '-';
+      decrementBtn.setAttribute('aria-label', `Decrease repeat count for verse ${verse.id}`);
       decrementBtn.addEventListener('click', () => {
         if (!isPlaying) {
           let repeatCount = parseInt(verseContainer.dataset.repeatCount || 0);
@@ -144,64 +341,138 @@ function displayQuranData(data, totalAyahs, topScoreSpan, tickedAyahs, audioBase
             repeatCount -= 1;
             verseContainer.dataset.repeatCount = repeatCount;
             counterDisplay.textContent = repeatCount;
+            updatePlayAllButtonText(); // Update button text based on counters
           }
         }
       });
-
+    
       const counterDisplay = document.createElement('span');
       counterDisplay.classList.add('counter-display');
       counterDisplay.textContent = 0; // Initialize counter
-
+    
       const incrementBtn = document.createElement('button');
       incrementBtn.classList.add('counter-btn');
       incrementBtn.textContent = '+';
+      incrementBtn.setAttribute('aria-label', `Increase repeat count for verse ${verse.id}`);
       incrementBtn.addEventListener('click', () => {
         if (!isPlaying) {
           let repeatCount = parseInt(verseContainer.dataset.repeatCount || 0);
           repeatCount += 1;
           verseContainer.dataset.repeatCount = repeatCount;
           counterDisplay.textContent = repeatCount;
+          updatePlayAllButtonText(); // Update button text based on counters
         }
       });
-
+    
       counterContainer.appendChild(decrementBtn);
       counterContainer.appendChild(counterDisplay);
       counterContainer.appendChild(incrementBtn);
-
+    
       const verseCard = document.createElement('div');
       verseCard.classList.add('verse-card');
-      verseCard.innerHTML = `<strong>${verse.id}:</strong> ${verse.text}`;
-
+      
+      // Add a span element with the 'ayah-text' class for the Ayah text
+      const ayahText = document.createElement('span');
+      ayahText.classList.add('ayah-text'); // Add this class to target Ayah text
+      ayahText.innerHTML = `<strong>${verse.id}:</strong> ${verse.text}`;
+    
+      verseCard.appendChild(ayahText); // Append Ayah text to the verseCard
+    
       verseContainer.appendChild(checkbox);
       verseContainer.appendChild(counterContainer);
       verseContainer.appendChild(verseCard);
-
+    
       surahSection.appendChild(verseContainer);
     });
+    
 
     contentDiv.appendChild(surahSection);
   });
 }
 
-// Function to populate the chapter popup menu
+// Function to populate the chapter popup menu with checkboxes
 function populateChapterMenu(data) {
   const chapterList = document.getElementById('chapterList');
 
   data.forEach(surah => {
+    const chapterItemDiv = document.createElement('div');
+    chapterItemDiv.classList.add('chapter-item'); // Wrapper for each chapter item
+
     const chapterButton = document.createElement('button');
     chapterButton.textContent = `Chapter ${surah.id}: ${surah.transliteration}`;
-    
+    chapterButton.classList.add('chapter-button');
+    chapterButton.setAttribute('aria-label', `Go to Chapter ${surah.id}`);
+
     // Scroll to the respective chapter when clicked with offset adjustment
     chapterButton.addEventListener('click', () => {
       const chapterSection = document.querySelector(`section[data-chapter-id="${surah.id}"]`);
-      const yOffset = -70;  // Offset value to ensure the sticky header is not visible
+      const yOffset = -70;  // Offset value to ensure the sticky header is not hidden
       const yPosition = chapterSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
       
       window.scrollTo({ top: yPosition, behavior: 'smooth' });
       closePopup(); // Close the popup after selection
     });
 
-    chapterList.appendChild(chapterButton);
+    // Add a checkbox next to the chapter name
+    const chapterCheckbox = document.createElement('input');
+    chapterCheckbox.type = 'checkbox';
+    chapterCheckbox.classList.add('chapter-checkbox');
+    chapterCheckbox.setAttribute('data-chapter-id', surah.id); // Properly set data-chapter-id
+    chapterCheckbox.setAttribute('aria-label', `Mark all verses in Chapter ${surah.id} as completed`);
+
+    // Event listener to check/uncheck all verses in the chapter
+    chapterCheckbox.addEventListener('change', function () {
+      const chapterSection = document.querySelector(`section[data-chapter-id="${surah.id}"]`);
+      const checkboxes = chapterSection.querySelectorAll('.verse-checkbox');
+
+      // When user clicks on chapter checkbox, clear indeterminate state
+      chapterCheckbox.indeterminate = false;
+
+      // Update the checkboxes without dispatching 'change' events
+      checkboxes.forEach(checkbox => {
+        checkbox.checked = chapterCheckbox.checked;
+      });
+
+      // Update counts
+      updateCounts();
+
+      // Update unchecked count and completion date
+      updateUncheckedCount();
+    });
+
+    // Append button and checkbox to the chapter item div
+    chapterItemDiv.appendChild(chapterCheckbox);
+    chapterItemDiv.appendChild(chapterButton);
+
+    // Add the chapter item to the list
+    chapterList.appendChild(chapterItemDiv);
+  });
+}
+
+// Function to update counts
+function updateCounts() {
+  // Update global tickedAyahs
+  tickedAyahs = document.querySelectorAll('.verse-checkbox:checked').length;
+
+  // Update the top menu
+  const topScoreSpan = document.querySelector('.top-menu .total-score');
+  topScoreSpan.textContent = `Total Score: ${tickedAyahs} / ${totalAyahs}, Left: ${totalAyahs - tickedAyahs}, Done: ${((tickedAyahs / totalAyahs) * 100).toFixed(2)}%`;
+
+  // For each chapter, update tickedCount
+  const chapters = document.querySelectorAll('.chapter');
+  chapters.forEach(chapterSection => {
+    const checkboxes = chapterSection.querySelectorAll('.verse-checkbox');
+    const tickedCount = chapterSection.querySelectorAll('.verse-checkbox:checked').length;
+    chapterSection.dataset.tickedCount = tickedCount;
+
+    const scoreSpan = chapterSection.querySelector('.score');
+    const remPcSpan = chapterSection.querySelector('.rem-pc-info');
+
+    const remainingAyahs = checkboxes.length - tickedCount;
+    const percentageCompleted = ((tickedCount / checkboxes.length) * 100).toFixed(2);
+
+    scoreSpan.textContent = `Score: ${tickedCount} / ${checkboxes.length}`;
+    remPcSpan.textContent = `Left: ${remainingAyahs}, Done: ${percentageCompleted}%`;
   });
 }
 
@@ -227,43 +498,54 @@ function playAllAyahsSequentially(surah, surahSection, audioBaseUrl, playAllButt
 
   const verseContainers = surahSection.querySelectorAll('.verse-container');
 
+  // Collect verses to play based on repeat counts
+  const versesToPlay = Array.from(verseContainers).filter(vc => parseInt(vc.dataset.repeatCount) > 0);
+
+  // If no repeat counts are set, play all verses once
+  if (versesToPlay.length === 0) {
+    versesToPlay.push(...verseContainers);
+  }
+
   const playNextAyah = () => {
-    if (currentAyahIndex >= surah.verses.length || !isPlaying) {
+    if (currentAyahIndex >= versesToPlay.length || !isPlaying) {
       // Reset when all Ayahs have been played or playback is stopped
-      playAllButton.textContent = "Play All";
-      resetAllCounters(surahSection); // Reset all counters to 0 after playback
       isPlaying = false;
       enableIncrementDecrementButtons(true); // Re-enable increment/decrement buttons
+      resetAllCounters(surahSection); // Reset all counters to 0 after playback
+
+      // Update Play All button text based on counters
+      const countersSet = surahSection.querySelectorAll('.verse-container[data-repeat-count]:not([data-repeat-count="0"])').length > 0;
+      playAllButton.textContent = countersSet ? "Play Selected" : "Play All";
       return;
     }
 
-    const verse = surah.verses[currentAyahIndex];
+    const verseContainer = versesToPlay[currentAyahIndex];
+    const verseId = verseContainer.querySelector('.verse-card strong').textContent.replace(':', '');
     const surahId = String(surah.id).padStart(3, '0');
-    const ayahId = String(verse.id).padStart(3, '0');
+    const ayahId = String(verseId).padStart(3, '0');
     const audioUrl = `${audioBaseUrl}${surahId}${ayahId}.mp3`;
 
-    const verseContainer = verseContainers[currentAyahIndex];
     let repeatCount = parseInt(verseContainer.dataset.repeatCount || 0);
+
+    // If no repeat count is set, play once
+    if (repeatCount === 0) {
+      repeatCount = 1;
+    }
 
     // Reset the counter to the correct repeat count before playing
     const counterDisplay = verseContainer.querySelector('.counter-display');
     counterDisplay.textContent = repeatCount;
 
-    if (repeatCount > 0) {
-      playAyahWithCounter(
-        audioUrl, 
-        repeatCount, 
-        counterDisplay, 
-        verseContainer, // Pass verseContainer to highlight the Ayah
-        () => {
-          currentAyahIndex++; // Move to the next Ayah after the current one finishes
-          playNextAyah();
-        }
-      );
-    } else {
-      currentAyahIndex++; // Skip if repeatCount is 0
-      playNextAyah();
-    }
+    playAyahWithCounter(
+      audioUrl,
+      repeatCount,
+      counterDisplay,
+      verseContainer, // Pass verseContainer to highlight the Ayah
+      () => {
+        currentAyahIndex++; // Move to the next Ayah after the current one finishes
+        playNextAyah();
+      }
+    );
   };
 
   // Disable increment and decrement buttons while Play All is active
@@ -277,6 +559,9 @@ function playAllAyahsSequentially(surah, surahSection, audioBaseUrl, playAllButt
 function playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContainer, onFinished) {
   currentAudio = new Audio(audioUrl); // Track the current audio
 
+  // Apply the global playback rate to the current Ayah
+  currentAudio.playbackRate = playbackRate; // Ensure playback rate is applied
+
   // Highlight the current Ayah
   if (lastHighlightedAyah) {
     lastHighlightedAyah.classList.remove('highlight'); // Remove highlight from the last Ayah
@@ -288,12 +573,21 @@ function playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContain
   counterDisplay.textContent = repeatCount;
   currentAudio.play();
 
+  // Error handling for audio playback
+  currentAudio.onerror = () => {
+    console.error(`Error playing audio: ${audioUrl}`);
+    alert('Failed to play audio. Please check your internet connection.');
+    counterDisplay.textContent = 0;
+    verseContainer.classList.remove('highlight');
+    onFinished();
+  };
+
   // When the audio ends, decrement the counter and handle looping
   currentAudio.onended = () => {
     repeatCount--;
     counterDisplay.textContent = repeatCount; // Update the counter
 
-    if (repeatCount > 0) {
+    if (repeatCount > 0 && isPlaying) {
       playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContainer, onFinished); // Replay if needed
     } else {
       counterDisplay.textContent = 0; // Reset the counter to 0
@@ -303,6 +597,7 @@ function playAyahWithCounter(audioUrl, repeatCount, counterDisplay, verseContain
   };
 }
 
+
 // Function to reset all counters and ensure no old values remain
 function resetAllCounters(surahSection) {
   const counters = surahSection.querySelectorAll('.counter-display');
@@ -310,6 +605,8 @@ function resetAllCounters(surahSection) {
     counter.textContent = 0; // Reset counter display to 0
     counter.closest('.verse-container').dataset.repeatCount = 0; // Reset the internal repeatCount
   });
+  // Update Play All button text
+  const updatePlayAllButtonText = surahSection.querySelector('.play-all-button').textContent;
 }
 
 // Function to enable/disable increment and decrement buttons
@@ -322,6 +619,7 @@ function enableIncrementDecrementButtons(enabled) {
 
 // Select the counter display elements for sticky bottom menu
 const checkCountDisplay = document.getElementById('checkCountDisplay');
+checkCountDisplay.textContent = checksPerDay;
 const completionDateDisplay = document.getElementById('completionDate');
 
 // Increment and decrement buttons for bottom menu
@@ -329,13 +627,15 @@ document.getElementById('incrementCheckCount').addEventListener('click', () => {
   checksPerDay++;
   checkCountDisplay.textContent = checksPerDay;
   calculateCompletionDate();
+  updateAyahEstimatedDates(); // Update estimated dates when checksPerDay changes
 });
 
 document.getElementById('decrementCheckCount').addEventListener('click', () => {
-  if (checksPerDay > 0) {
+  if (checksPerDay > 1) {
     checksPerDay--;
     checkCountDisplay.textContent = checksPerDay;
     calculateCompletionDate();
+    updateAyahEstimatedDates(); // Update estimated dates when checksPerDay changes
   }
 });
 
@@ -362,17 +662,8 @@ function calculateCompletionDate() {
 function updateUncheckedCount() {
   uncheckedCount = document.querySelectorAll('.verse-checkbox:not(:checked)').length;
   calculateCompletionDate();
+  updateAyahEstimatedDates(); // Update estimated dates when unchecked count changes
 }
-
-// Call this function after fetching data to initialize uncheckedCount
-fetch('quran.json')
-  .then(response => response.json())
-  .then(data => {
-    // Calculate total and unchecked Ayahs
-    totalAyahs = data.reduce((acc, surah) => acc + surah.verses.length, 0);
-    updateUncheckedCount();
-    // Existing logic for populating Quran data and UI elements...
-  });
 
 // Update the uncheckedCount every time a checkbox changes
 document.addEventListener('change', (event) => {
@@ -380,3 +671,48 @@ document.addEventListener('change', (event) => {
     updateUncheckedCount();
   }
 });
+
+// Function to update estimated dates for each unchecked Ayah
+function updateAyahEstimatedDates() {
+  const today = new Date();
+  const uncheckedVerseCheckboxes = document.querySelectorAll('.verse-container .verse-checkbox:not(:checked)');
+
+  let uncheckedAyahs = [];
+  uncheckedVerseCheckboxes.forEach((checkbox) => {
+    const verseContainer = checkbox.closest('.verse-container');
+    uncheckedAyahs.push(verseContainer);
+  });
+
+  uncheckedAyahs.forEach((verseContainer, index) => {
+    const dayOffset = Math.floor(index / checksPerDay);
+    const estimatedDate = new Date(today);
+    estimatedDate.setDate(today.getDate() + dayOffset);
+
+    const day = String(estimatedDate.getDate()).padStart(2, '0');
+    const month = String(estimatedDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const year = estimatedDate.getFullYear();
+
+    const formattedDate = `${day}/${month}/${year}`;
+
+    // Now, in the verseContainer, we need to display this date next to the checkbox
+    let estimatedDateSpan = verseContainer.querySelector('.estimated-date');
+    if (!estimatedDateSpan) {
+      // Create the span if it doesn't exist
+      estimatedDateSpan = document.createElement('span');
+      estimatedDateSpan.classList.add('estimated-date');
+      estimatedDateSpan.style.marginLeft = '5px'; // Adjust styling as needed
+      verseContainer.querySelector('.verse-checkbox').after(estimatedDateSpan);
+    }
+    estimatedDateSpan.textContent = formattedDate;
+  });
+
+  // For checked ayahs, remove the estimated date
+  const checkedVerseCheckboxes = document.querySelectorAll('.verse-container .verse-checkbox:checked');
+  checkedVerseCheckboxes.forEach((checkbox) => {
+    const verseContainer = checkbox.closest('.verse-container');
+    const estimatedDateSpan = verseContainer.querySelector('.estimated-date');
+    if (estimatedDateSpan) {
+      estimatedDateSpan.remove();
+    }
+  });
+}
